@@ -2,8 +2,9 @@ import 'package:flutter/animation.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:raminups/features/getStart/presentation/screen/getstart_screen.dart';
+import 'package:raminups/features/home/presentation/screen/home_screen.dart';
 
+import '../../features/auth/presentation/screen/getstart_screen.dart';
 import '../constants/app_constants.dart';
 
 
@@ -52,17 +53,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         )
       ),
 
-      // ),
-      //
-      // GoRoute(
-      //   path: AppPaths.bottom_manu,
-      //   name: AppRoutes.bottom_manu,
-      //   pageBuilder: (context, state) => buildSlideTransitionPage(
-      //     key: state.pageKey,
-      //     child: BottomMenuWrapper(),
-      //   ),
-      // ),
-      //
+
+      GoRoute(
+        path: AppPaths.home,
+        name: AppRoutes.home,
+        pageBuilder: (context, state) => buildSlideTransitionPage(
+          key: state.pageKey,
+          child: HomeScreen(),
+        ),
+      ),
+
       // GoRoute(
       //   path: AppPaths.block_userlist,
       //   name: AppRoutes.block_userlist,

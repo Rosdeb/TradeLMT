@@ -26,5 +26,34 @@ class AppColors {
   static const Color destructiveRed = Color(0xFFFF3B30);
 
 
+  static const sidebarBg    = Color(0xFFD6D6D8);
+  static const activeGreen  = Color(0xFF22C55E);
+  static const activeGlow   = Color(0x1F22C55E);
+  static const mutedIcon    = Color(0xFF5E6165);
+
+  // Content
+  static const contentBg   = Color(0xFFF9F9FB);
+  static const cardBg      = Color(0xFFFFFFFF);
+  static const dividerLine = Color(0xFF222226);
+
+  // Text
+  static const textPrimary   = Color(0xFF111111);
+  static const textSecondary = Color(0xFF6B7280);
+  static const textTertiary  = Color(0xFF9CA3AF);
+
+  // Semantic
+  static const green      = Color(0xFF22C55E);
+  static const greenBg    = Color(0xFFEAFAEF);
+  static const greenText  = Color(0xFF16803A);
+  static const amber      = Color(0xFFEF9F27);
+  static const amberBg    = Color(0xFFFAEEDA);
+  static const amberText  = Color(0xFF854F0B);
+  static const blue       = Color(0xFF378ADD);
+  static const blueBg     = Color(0xFFE6F1FB);
+  static const blueText   = Color(0xFF185FA5);
+  static const red        = Color(0xFFE24B4A);
+  static const redBg      = Color(0xFFFEF0EF);
+  static const redText    = Color(0xFFB82A29);
+
 
 }

@@ -19,6 +19,9 @@ class ErrorMessages {
 
 class AppPaths {
   static const String splash = '/getstart_screen';
+  static const String home = '/home_screen';
+
+
   static const String login = '/login';
   static const String register = '/register';
   static const String main = '/main';
@@ -35,6 +38,10 @@ class AppPaths {
 
 class AppRoutes {
   static const String splash = '/getstart_screen';
+  static const String home = '/home_screen';
+
+
+
   static const String login = 'login';
   static const String register = 'register';
   static const String main = 'main';

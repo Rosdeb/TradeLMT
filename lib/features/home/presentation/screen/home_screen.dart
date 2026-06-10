@@ -34,9 +34,6 @@ class HomeScreen extends ConsumerWidget {
           // ── Sidebar ────────────────────────────────────────────────────────
           const AppSidebar(),
 
-          // ── Divider ────────────────────────────────────────────────────────
-          VerticalDivider(width: 1, thickness: 1, color: AppColors.dividerLine),
-
           // ── Content area ───────────────────────────────────────────────────
           Expanded(
             child: IndexedStack(

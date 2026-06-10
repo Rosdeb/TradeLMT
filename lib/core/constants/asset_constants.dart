@@ -7,6 +7,14 @@ class Assets {
   static const String _lottiePath = 'assets/lottie';
 
   // ================================
+  //== broker list
+  static const String Thinkorswim  = 'assets/images/Thinkorswim.png';
+  static const String Tradeovate  = 'assets/images/Tradovate.png';
+  static const String TradingView  = 'assets/images/tradingview-n.webp';
+  static const String Robinhood  = 'assets/images/Robinhood.png';
+  static const String NinjaTrader  = 'assets/images/NinjaTrader.webp';
+  static const String InteractiveBroker  = 'assets/images/Interactive Brokers.png';
+
   // 🖼️ Images
   // ================================
   static const String logo = '$_iconPath/app_logo.png';

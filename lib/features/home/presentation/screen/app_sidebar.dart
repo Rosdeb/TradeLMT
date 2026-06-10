@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
+import 'package:raminups/components/AppText/appText.dart';
 import 'package:raminups/core/utils/app_colour.dart';
 import '../providers/home_providers.dart';
 
@@ -20,9 +21,9 @@ class AppSidebar extends ConsumerWidget {
     final selected = ref.watch(activeTabProvider);
 
     return SizedBox(
-      width: 120,
+      width: 150,
       child: ColoredBox(
-        color: AppColors.sidebarBg,
+        color: AppColors.white_bg,
         child: Column(
           children: [
             const SizedBox(height: 20),
@@ -38,6 +39,19 @@ class AppSidebar extends ConsumerWidget {
                   isActive: selected == i,
                   onTap: () => ref.read(activeTabProvider.notifier).state = i,
                 ),
+              ),
+            ),
+            
+            const Spacer(),
+            
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              child: Row(
+                children: [
+                  Icon(Icons.settings,color: Colors.black,size: 20,),
+                  const SizedBox(width: 8),
+                  AppText("Logout",fontSize: 18,fontWeight: FontWeight.w500,color: Colors.black,),
+                ],
               ),
             ),
             const SizedBox(height: 20),
@@ -93,7 +107,7 @@ class _NavTileState extends State<_NavTile> {
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 6),
               transform: _pressed
-                  ? (Matrix4.identity()..scale(0.96, 0.96, 1.0))
+                  ? (Matrix4.identity()..scale(0.70, 0.65, 1.0))
                   : Matrix4.identity(),
               transformAlignment: Alignment.center,
               decoration: BoxDecoration(
@@ -103,14 +117,9 @@ class _NavTileState extends State<_NavTile> {
                     ? const Color(0x0FFFFFFF)
                     : Colors.transparent,
                 borderRadius: BorderRadius.circular(10),
-                border: Border(
-                  left: BorderSide(
-                    color: active ? AppColors.activeGreen : Colors.transparent,
-                    width: 2,
-                  ),
-                ),
+
               ),
-              child: Column(
+              child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   AnimatedSwitcher(
@@ -121,12 +130,12 @@ class _NavTileState extends State<_NavTile> {
                       color: active
                           ? AppColors.activeGreen
                           : hovered
-                          ? const Color(0xFF9CA3AF)
+                          ? const Color(0xf000000)
                           : AppColors.mutedIcon,
                       size: 20,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(width: 8),
                   Text(
                     widget.dest.label,
                     style: TextStyle(
@@ -135,7 +144,7 @@ class _NavTileState extends State<_NavTile> {
                       color: active
                           ? AppColors.activeGreen
                           : hovered
-                          ? const Color(0xFF9CA3AF)
+                          ? const Color(0xFF040404)
                           : AppColors.mutedIcon,
                       letterSpacing: 0.2,
                     ),

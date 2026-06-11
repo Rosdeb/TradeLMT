@@ -39,3 +39,4 @@ final tradingPlatformsProvider = Provider<List<TradingPlatform>>((ref) {
   ];
 });
 final tradeLimitCountProvider = StateProvider<int>((ref)=>2);
+final lockDurationProvider = StateProvider<int>((ref) => 4);

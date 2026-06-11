@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:raminups/components/Ios_effect/iosTapEffect.dart';
 import 'package:window_manager/window_manager.dart';
 
 import '../../../../core/constants/asset_constants.dart';
@@ -54,15 +55,21 @@ class CustomLightTitleBar1 extends StatelessWidget
 
                 const SizedBox(width: 10),
 
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(100),
-                  child: Image.network(
-                    "https://img.magnific.com/free-photo/expressive-woman-posing-outdoor_344912-3079.jpg?semt=ais_hybrid&w=740&q=80",
-                    width: 34,
-                    height: 34,
-                    fit: BoxFit.cover,
+                IosTapEffect(
+                  onTap: () {
+
+                  },
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(100),
+                    child: Image.network(
+                      "https://img.magnific.com/free-photo/expressive-woman-posing-outdoor_344912-3079.jpg?semt=ais_hybrid&w=740&q=80",
+                      width: 34,
+                      height: 34,
+                      fit: BoxFit.cover,
+                    ),
                   ),
                 ),
+
               ],
             ),
 

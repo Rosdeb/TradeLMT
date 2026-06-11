@@ -3,12 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:raminups/components/AppText/appText.dart';
 import 'package:raminups/core/utils/app_colour.dart';
-
 import '../providers/dashboard_providers.dart';
 import '../widgets/iconsButton.dart';
 import '../widgets/trading_list_assets.dart';
 
-// Mock Providers for the control panel toggle states
 final maxTradesProvider = StateProvider<double>((ref) => 5);
 final apiStatusProvider = StateProvider<bool>((ref) => true);
 final timeLockProvider = StateProvider<bool>((ref) => true);
@@ -25,7 +23,7 @@ class DashboardScreen extends ConsumerWidget {
     final tradeLimit = ref.watch(tradeLimitCountProvider);
     print("tradeLimit: $tradeLimit");
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC), // Off-white modern canvas background
+      backgroundColor: const Color(0xFFF8FAFC),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(32.0),
         child: Column(
@@ -36,7 +34,7 @@ class DashboardScreen extends ConsumerWidget {
                 // Trades Today Card
                 Expanded(
                   child: _buildStatCard(
-                    cardColor:AppColors.white_bg,
+                    cardColor: AppColors.white_bg,
                     title: 'Trades Today',
                     textMuted: textMuted,
                     child: RichText(
@@ -117,13 +115,13 @@ class DashboardScreen extends ConsumerWidget {
             const SizedBox(height: 16),
 
             Container(
-            constraints: const BoxConstraints(minWidth: 300),
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            decoration: BoxDecoration(
-            color: AppColors.white_bg,
-            borderRadius: BorderRadius.circular(16),
-            ),
-            child:Column(
+              constraints: const BoxConstraints(minWidth: 300),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              decoration: BoxDecoration(
+                color: AppColors.white_bg,
+                borderRadius: BorderRadius.circular(16),
+               ),
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Header title and percentage layout
@@ -151,41 +149,35 @@ class DashboardScreen extends ConsumerWidget {
                   const SizedBox(height: 16),
 
                   // Linear Progress Indicator matching the mint styling
-                   ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: const LinearProgressIndicator(
-                        value: 0.8,
-                        minHeight: 12,
-                        backgroundColor: Color(0xFFAFADAD),
-                        valueColor: AlwaysStoppedAnimation<Color>(mintGreen),
-                      ),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: const LinearProgressIndicator(
+                      value: 0.8,
+                      minHeight: 12,
+                      backgroundColor: Color(0xFFAFADAD),
+                      valueColor: AlwaysStoppedAnimation<Color>(mintGreen),
                     ),
+                  ),
                   const SizedBox(height: 12),
 
                   // Footer Caption text
                   const Text(
                     '1 trade remaining before auto-lock',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: textMuted,
-                    ),
+                    style: TextStyle(fontSize: 13, color: textMuted),
                   ),
                 ],
               ),
             ),
 
             const SizedBox(height: 16),
-
             TradingPlatformsWidget(),
+            const SizedBox(height: 16),
 
             Row(
               children: [
-
                 Expanded(
                   child: Container(
-                    constraints: const BoxConstraints(
-                      minWidth: 300,
-                    ),
+                    constraints: const BoxConstraints(minWidth: 300),
                     padding: const EdgeInsets.symmetric(
                       horizontal: 20,
                       vertical: 10,
@@ -201,7 +193,6 @@ class DashboardScreen extends ConsumerWidget {
                           offset: const Offset(0, 1),
                         ),
                       ],
-
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -209,25 +200,31 @@ class DashboardScreen extends ConsumerWidget {
                         Row(
                           children: [
                             Icon(Icons.dashboard),
-                            const SizedBox(width: 10,),
-                            AppText("Daily Trade Limit"),
-
+                            const SizedBox(width: 10),
+                            AppText(
+                              "Daily Trade Limit",
+                              fontSize: 20,
+                              color: AppColors.textDark,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ],
                         ),
-                        const SizedBox(height: 10,),
-                        AppText("The maximum number of positions allowed before the terminal enters Restricted Mode.",fontWeight: FontWeight.w400,fontSize: 12,),
-                        const SizedBox(height: 10,),
+                        const SizedBox(height: 10),
+                        AppText(
+                          "The maximum number of positions allowed before the terminal enters Restricted Mode.",
+                          fontWeight: FontWeight.w400,
+                          fontSize: 12,
+                        ),
+                        const SizedBox(height: 10),
                         TradeLimitCounter(),
                       ],
                     ),
                   ),
                 ),
-                const SizedBox(width: 16,),
+                const SizedBox(width: 16),
                 Expanded(
                   child: Container(
-                    constraints: const BoxConstraints(
-                      minWidth: 300,
-                    ),
+                    constraints: const BoxConstraints(minWidth: 300),
                     padding: const EdgeInsets.symmetric(
                       horizontal: 20,
                       vertical: 10,
@@ -241,45 +238,88 @@ class DashboardScreen extends ConsumerWidget {
                       children: [
                         Row(
                           children: [
-                            Icon(Icons.timer,color: Colors.black,),
-                            const SizedBox(width: 10,),
-                            AppText("Daily Trade Limit"),
-
+                            Icon(Icons.timer, color: Colors.black),
+                            const SizedBox(width: 10),
+                            AppText(
+                              "Lock Duration",
+                              fontSize: 20,
+                              color: AppColors.textDark,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ],
                         ),
-                        const SizedBox(height: 10,),
-                        AppText("The maximum number of positions allowed before the terminal enters Restricted Mode.",fontWeight: FontWeight.w400,fontSize: 12,),
-                        const SizedBox(height: 10,),
-                        Row(
-                          children: [
-                            CircleIconButton(
-                              icon: Icons.remove,
-                              onPressed: () {},
-                            ),
-                            const SizedBox(width: 10,),
-                            AppText("5"),
-                            const SizedBox(width: 10,),
-                            CircleIconButton(
-                              icon: Icons.add,
-                              onPressed: () {},
-                            )
-                          ],
-                        )
+                        const SizedBox(height: 10),
+                        AppText(
+                          "The maximum number of positions allowed before the terminal enters Restricted Mode.",
+                          fontWeight: FontWeight.w400,
+                          fontSize: 12,
+                        ),
+                        const SizedBox(height: 10),
+                        SizedBox(
+                          height: 45,
+                          child: Consumer(
+                            builder: (context, ref, child) {
+                              final selectedDuration = ref.watch(lockDurationProvider);
+
+                              final durations = [1, 2, 4, 8];
+
+                              return ListView.separated(
+                                scrollDirection: Axis.horizontal,
+                                itemCount: durations.length,
+                                separatorBuilder: (_, __) => const SizedBox(width: 10),
+                                itemBuilder: (context, index) {
+                                  final duration = durations[index];
+                                  final isSelected = selectedDuration == duration;
+
+                                  return InkWell(
+                                    onTap: () {
+                                      ref.read(lockDurationProvider.notifier).state = duration;
+                                    },
+                                    child: Container(
+                                      width: 80,
+                                      decoration: BoxDecoration(
+                                        color: isSelected
+                                            ? Colors.blue
+                                            : Colors.white70,
+                                        borderRadius: BorderRadius.circular(8),
+                                        border: Border.all(
+                                          color: AppColors.textDark
+                                        ),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: AppColors.textDark.withValues(alpha: 0.12),
+                                            blurRadius: 2,
+                                            offset: const Offset(0, 2),
+                                          ),
+                                        ],
+                                      ),
+                                      child: Center(
+                                        child: AppText(
+                                          "$duration Hour",
+                                          color: isSelected
+                                              ? Colors.white
+                                              : Colors.black,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              );
+                            },
+                          ),
+                        ),
                       ],
                     ),
                   ),
                 ),
-
               ],
             ),
-
-
           ],
         ),
       ),
     );
   }
-
 
   Widget _buildStatCard({
     required Color cardColor,
@@ -287,20 +327,20 @@ class DashboardScreen extends ConsumerWidget {
     required Color textMuted,
     required Widget child,
   }) {
-   return  Container(
+    return Container(
       height: 105,
       padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
         color: cardColor,
-        borderRadius:  BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(8),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.10),
             spreadRadius: 0,
             blurRadius: 1,
-            offset: Offset(1, -1)
-          )
-        ]
+            offset: Offset(1, -1),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -319,27 +359,53 @@ class DashboardScreen extends ConsumerWidget {
       ),
     );
   }
+
   // Helper metric display block
-  Widget _buildMetricCard(String title, String val, IconData icon, Color color, {String? subtitle}) {
+  Widget _buildMetricCard(
+    String title,
+    String val,
+    IconData icon,
+    Color color, {
+    String? subtitle,
+  }) {
     return Container(
       padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(color: const Color(0xFF111827), borderRadius: BorderRadius.circular(16)),
+      decoration: BoxDecoration(
+        color: const Color(0xFF111827),
+        borderRadius: BorderRadius.circular(16),
+      ),
       child: Row(
         children: [
-          CircleAvatar(backgroundColor: color.withOpacity(0.2), child: Icon(icon, color: color)),
+          CircleAvatar(
+            backgroundColor: color.withOpacity(0.2),
+            child: Icon(icon, color: color),
+          ),
           const SizedBox(width: 16),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              AppText(title, style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 13)),
+              AppText(
+                title,
+                style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 13),
+              ),
               const SizedBox(height: 4),
-              AppText(val, style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
+              AppText(
+                val,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
               if (subtitle != null) ...[
                 const SizedBox(height: 2),
-                AppText(subtitle, style: const TextStyle(color: Colors.green, fontSize: 12)),
-              ]
+                AppText(
+                  subtitle,
+                  style: const TextStyle(color: Colors.green, fontSize: 12),
+                ),
+              ],
             ],
-          )
+          ),
         ],
       ),
     );
@@ -349,17 +415,32 @@ class DashboardScreen extends ConsumerWidget {
   Widget _buildPerformanceSection() {
     return Container(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0xFFE2E8F0))),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const AppText('Performance Analytics', style: TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.bold, fontSize: 15)),
+          const AppText(
+            'Performance Analytics',
+            style: TextStyle(
+              color: Color(0xFF0F172A),
+              fontWeight: FontWeight.bold,
+              fontSize: 15,
+            ),
+          ),
           const SizedBox(height: 16),
           _buildRowMetric('Average Profit Trade', '+\$450.00', Colors.green),
           const Divider(height: 20),
           _buildRowMetric('Average Loss Trade', '-\$180.00', Colors.red),
           const Divider(height: 20),
-          _buildRowMetric('Active Running Trades', '2 Positions Open', Colors.indigo),
+          _buildRowMetric(
+            'Active Running Trades',
+            '2 Positions Open',
+            Colors.indigo,
+          ),
         ],
       ),
     );
@@ -369,8 +450,18 @@ class DashboardScreen extends ConsumerWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        AppText(label, style: const TextStyle(color: Color(0xFF475569), fontSize: 13)),
-        AppText(value, style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 13)),
+        AppText(
+          label,
+          style: const TextStyle(color: Color(0xFF475569), fontSize: 13),
+        ),
+        AppText(
+          value,
+          style: TextStyle(
+            color: color,
+            fontWeight: FontWeight.bold,
+            fontSize: 13,
+          ),
+        ),
       ],
     );
   }
@@ -380,18 +471,24 @@ class DashboardScreen extends ConsumerWidget {
     return Container(
       height: 300,
       width: double.infinity,
-      decoration: BoxDecoration(color: const Color(0xFF1E293B), borderRadius: BorderRadius.circular(16)),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1E293B),
+        borderRadius: BorderRadius.circular(16),
+      ),
       child: Stack(
         children: [
           Positioned.fill(
             child: Opacity(
               opacity: 0.1,
               child: GridView.builder(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 10),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 10,
+                ),
                 itemBuilder: (context, index) => Container(
                   decoration: BoxDecoration(
-                    border :Border.all(color: Colors.white, width: 0.5)
-                ),),
+                    border: Border.all(color: Colors.white, width: 0.5),
+                  ),
+                ),
               ),
             ),
           ),
@@ -401,50 +498,109 @@ class DashboardScreen extends ConsumerWidget {
               children: [
                 Icon(Icons.candlestick_chart, size: 48, color: Colors.green),
                 SizedBox(height: 12),
-                AppText('TradingView Live Integration Stream', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                AppText(
+                  'TradingView Live Integration Stream',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
                 SizedBox(height: 4),
-                AppText('BTC/USD · 1m Chart Active', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                AppText(
+                  'BTC/USD · 1m Chart Active',
+                  style: TextStyle(color: Colors.grey, fontSize: 12),
+                ),
               ],
             ),
-          )
+          ),
         ],
       ),
     );
   }
 
-  // Column 2 Component: Broker accounts integration status list
   Widget _buildBrokerListSection() {
     final brokers = [
-      {'name': 'Thinkorswim', 'status': 'Connected', 'icon': Icons.check_circle, 'color': Colors.green},
-      {'name': 'Tradovate', 'status': 'Connected', 'icon': Icons.check_circle, 'color': Colors.green},
-      {'name': 'Interactive Brokers', 'status': 'Disconnected', 'icon': Icons.cancel, 'color': Colors.red},
-      {'name': 'Robinhood', 'status': 'Connected', 'icon': Icons.check_circle, 'color': Colors.green},
+      {
+        'name': 'Thinkorswim',
+        'status': 'Connected',
+        'icon': Icons.check_circle,
+        'color': Colors.green,
+      },
+      {
+        'name': 'Tradovate',
+        'status': 'Connected',
+        'icon': Icons.check_circle,
+        'color': Colors.green,
+      },
+      {
+        'name': 'Interactive Brokers',
+        'status': 'Disconnected',
+        'icon': Icons.cancel,
+        'color': Colors.red,
+      },
+      {
+        'name': 'Robinhood',
+        'status': 'Connected',
+        'icon': Icons.check_circle,
+        'color': Colors.green,
+      },
     ];
 
     return Container(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0xFFE2E8F0))),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const AppText('Connected Broker Accounts', style: TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.bold, fontSize: 15)),
+          const AppText(
+            'Connected Broker Accounts',
+            style: TextStyle(
+              color: Color(0xFF0F172A),
+              fontWeight: FontWeight.bold,
+              fontSize: 15,
+            ),
+          ),
           const SizedBox(height: 14),
           Row(
-            children: brokers.map((broker) => Expanded(
-              child: Container(
-                margin: const EdgeInsets.symmetric(horizontal: 4),
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(color: const Color(0xFFF8FAFC), borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0xFFE2E8F0))),
-                child: Column(
-                  children: [
-                    AppText(broker['name'] as String, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: Color(0xFF1E293B)), textAlign: TextAlign.center),
-                    const SizedBox(height: 8),
-                    Icon(broker['icon'] as IconData, color: broker['color'] as Color, size: 16),
-                  ],
-                ),
-              ),
-            )).toList(),
-          )
+            children: brokers
+                .map(
+                  (broker) => Expanded(
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 4),
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF8FAFC),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                      ),
+                      child: Column(
+                        children: [
+                          AppText(
+                            broker['name'] as String,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 11,
+                              color: Color(0xFF1E293B),
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 8),
+                          Icon(
+                            broker['icon'] as IconData,
+                            color: broker['color'] as Color,
+                            size: 16,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                )
+                .toList(),
+          ),
         ],
       ),
     );
@@ -456,7 +612,11 @@ class DashboardScreen extends ConsumerWidget {
 
     return Container(
       padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0xFFE2E8F0))),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -464,15 +624,36 @@ class DashboardScreen extends ConsumerWidget {
             children: [
               Icon(Icons.shield, color: Colors.orange, size: 20),
               SizedBox(width: 8),
-              AppText('Risk Management Rules', style: TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.bold, fontSize: 16)),
+              AppText(
+                'Risk Management Rules',
+                style: TextStyle(
+                  color: Color(0xFF0F172A),
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 24),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const AppText('Max trades / day', style: TextStyle(color: Color(0xFF334155), fontWeight: FontWeight.w600, fontSize: 13)),
-              AppText('${maxTrades.toInt()} Trades', style: const TextStyle(color: Colors.orange, fontWeight: FontWeight.bold, fontSize: 13)),
+              const AppText(
+                'Max trades / day',
+                style: TextStyle(
+                  color: Color(0xFF334155),
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                ),
+              ),
+              AppText(
+                '${maxTrades.toInt()} Trades',
+                style: const TextStyle(
+                  color: Colors.orange,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                ),
+              ),
             ],
           ),
           Slider(
@@ -481,42 +662,87 @@ class DashboardScreen extends ConsumerWidget {
             max: 20,
             activeColor: Colors.orange,
             inactiveColor: const Color(0xFFE2E8F0),
-            onChanged: (val) => ref.read(maxTradesProvider.notifier).state = val,
+            onChanged: (val) =>
+                ref.read(maxTradesProvider.notifier).state = val,
           ),
           const SizedBox(height: 16),
           const Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              AppText('Max loss / day cap', style: TextStyle(color: Color(0xFF334155), fontWeight: FontWeight.w600, fontSize: 13)),
-              AppText('\$500.00 Limit', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 13)),
+              AppText(
+                'Max loss / day cap',
+                style: TextStyle(
+                  color: Color(0xFF334155),
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                ),
+              ),
+              AppText(
+                '\$500.00 Limit',
+                style: TextStyle(
+                  color: Colors.red,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 24),
           Container(
             padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(color: const Color(0xFFFFF7ED), borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0xFFFFEDD5))),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFF7ED),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFFFEDD5)),
+            ),
             child: Column(
               children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const AppText('Cooldown Rest Timer', style: TextStyle(color: Color(0xFF7C2D12), fontWeight: FontWeight.bold, fontSize: 12)),
+                    const AppText(
+                      'Cooldown Rest Timer',
+                      style: TextStyle(
+                        color: Color(0xFF7C2D12),
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
+                    ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(color: Colors.orange, borderRadius: BorderRadius.circular(6)),
-                      child: const AppText('Active', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
-                    )
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.orange,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: const AppText(
+                        'Active',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 6),
                 const Align(
                   alignment: Alignment.centerLeft,
-                  child: AppText('Locks orders for 15 minutes immediately following any sudden multi-point trailing stop-out event.',
-                      style: TextStyle(color: Color(0xFF9A3412), fontSize: 12, height: 1.3)),
-                )
+                  child: AppText(
+                    'Locks orders for 15 minutes immediately following any sudden multi-point trailing stop-out event.',
+                    style: TextStyle(
+                      color: Color(0xFF9A3412),
+                      fontSize: 12,
+                      height: 1.3,
+                    ),
+                  ),
+                ),
               ],
             ),
-          )
+          ),
         ],
       ),
     );
@@ -535,14 +761,18 @@ class TradeLimitCounter extends ConsumerWidget {
         CircleIconButton(
           icon: Icons.remove,
           onPressed: () {
-            ref.read(tradeLimitCountProvider.notifier).state--;
+            if(tradeLimit == 0){
+
+            }else{
+              ref.read(tradeLimitCountProvider.notifier).state--;
+            }
             print("hello ");
           },
         ),
 
-        const SizedBox(width: 10,),
+        const SizedBox(width: 10),
         AppText(tradeLimit.toString()),
-        const SizedBox(width: 10,),
+        const SizedBox(width: 10),
         CircleIconButton(
           icon: Icons.add,
           onPressed: () {

@@ -2,15 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:raminups/components/AppText/appText.dart';
+import 'package:raminups/components/Ios_effect/iosTapEffect.dart';
 import 'package:raminups/core/utils/app_colour.dart';
 import '../providers/home_providers.dart';
+import '../widgets/logout_widgets.dart';
 
 // ─── static nav data ─────────────────────────────────────────────────────────
 const _kDests = [
-  _NavDest(icon: Iconsax.activity_copy,   selected: Iconsax.activity,   label: 'Dashboard'),
-  _NavDest(icon: Iconsax.cpu_charge_copy, selected: Iconsax.cpu_charge, label: 'Connections'),
-  _NavDest(icon: Iconsax.lock_copy,       selected: Iconsax.lock,       label: 'Guardrails'),
-  _NavDest(icon: Iconsax.card_copy,       selected: Iconsax.card,       label: 'Subscription'),
+  _NavDest(icon: Iconsax.element_4_copy,   selected: Iconsax.element_4,   label: 'Dashboard'),
+  _NavDest(icon: Iconsax.link, selected: Iconsax.link_copy, label: 'Connect'),
+  _NavDest(icon: Iconsax.setting_2,       selected: Iconsax.setting_2_copy,       label: 'Setting'),
+  _NavDest(icon: Iconsax.crown,       selected: Iconsax.star,       label: 'Subscription'),
 ];
 
 class AppSidebar extends ConsumerWidget {
@@ -46,12 +48,18 @@ class AppSidebar extends ConsumerWidget {
             
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 10),
-              child: Row(
-                children: [
-                  Icon(Icons.settings,color: Colors.black,size: 20,),
-                  const SizedBox(width: 8),
-                  AppText("Logout",fontSize: 18,fontWeight: FontWeight.w500,color: Colors.black,),
-                ],
+              child: IosTapEffect(
+                onTap: (){
+                  showLogoutDialog(context);
+                },
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Icon(Icons.logout,color: Colors.black,size: 16,),
+                    const SizedBox(width: 8),
+                    AppText("Logout",fontSize: 14,fontWeight: FontWeight.w500,color: Colors.black,),
+                  ],
+                ),
               ),
             ),
             const SizedBox(height: 20),
@@ -60,6 +68,13 @@ class AppSidebar extends ConsumerWidget {
       ),
     );
   }
+ void showLogoutDialog (BuildContext context){
+   showDialog(
+     barrierColor: Color(0xFFCEE6E5).withOpacity(0.90),
+     context: context,
+     builder: (context) => LogoutDialog(),
+   );
+ }
 }
 
 // ─── single tile ─────────────────────────────────────────────────────────────

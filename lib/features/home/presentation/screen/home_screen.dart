@@ -8,7 +8,7 @@ import '../providers/home_providers.dart';
 import '../widgets/customDarkTitle.dart';
 import 'app_sidebar.dart';
 import 'dashboard_screen.dart';
-import 'guardrail_screen.dart';
+import 'setting_screen.dart';
 
 
 // Views are const — Flutter reuses them across rebuilds with no allocation cost.

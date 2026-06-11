@@ -1,23 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:raminups/components/AppText/appText.dart';
+import 'package:raminups/core/utils/app_colour.dart';
+
 // ─────────────────────────────────────────────
 //  THEME TOKENS
 // ─────────────────────────────────────────────
 class _T {
-  static const bg       = Color(0xFFF5F6FA);
-  static const card     = Color(0xFFFFFFFF);
-  static const border   = Color(0xFFE4E7ED);
-  static const p1       = Color(0xFF111827);
-  static const p2       = Color(0xFF6B7280);
-  static const p3       = Color(0xFF9CA3AF);
-  static const blue     = Color(0xFF2563EB);
-  static const blueBg   = Color(0xFFEFF6FF);
-  static const green    = Color(0xFF16A34A);
-  static const greenBg  = Color(0xFFDCFCE7);
-  static const amber    = Color(0xFFD97706);
-  static const amberBg  = Color(0xFFFEF3C7);
-  static const red      = Color(0xFFDC2626);
-  static const redBg    = Color(0xFFFEF2F2);
-  static const purple   = Color(0xFF7C3AED);
+  static const bg = Color(0xFFF5F6FA);
+  static const card = Color(0xFFFFFFFF);
+  static const border = Color(0xFFE4E7ED);
+  static const p1 = Color(0xFF111827);
+  static const p2 = Color(0xFF6B7280);
+  static const p3 = Color(0xFF9CA3AF);
+  static const blue = Color(0xFF2563EB);
+  static const blueBg = Color(0xFFEFF6FF);
+  static const green = Color(0xFF16A34A);
+  static const greenBg = Color(0xFFDCFCE7);
+  static const amber = Color(0xFFD97706);
+  static const amberBg = Color(0xFFFEF3C7);
+  static const red = Color(0xFFDC2626);
+  static const redBg = Color(0xFFFEF2F2);
+  static const purple = Color(0xFF7C3AED);
   static const purpleBg = Color(0xFFF5F3FF);
 }
 
@@ -95,25 +98,31 @@ class _ProfileCard extends StatelessWidget {
           Row(
             children: [
               CircleAvatar(
-                radius: 26,
-                backgroundColor: _T.blue.withOpacity(0.15),
-                child: const Icon(Icons.person, color: _T.blue, size: 26),
+                radius: 25,
+                backgroundImage: NetworkImage(
+                  "https://static.vecteezy.com/system/resources/thumbnails/005/346/410/small/close-up-portrait-of-smiling-handsome-young-caucasian-man-face-looking-at-camera-on-isolated-light-gray-studio-background-photo.jpg",
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Rosdab Koch',
-                        style: TextStyle(
-                            color: _T.p1,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 14)),
+                    const Text(
+                      'Rosdab Koch',
+                      style: TextStyle(
+                        color: _T.p1,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 14,
+                      ),
+                    ),
                     const SizedBox(height: 2),
-                    const Text('rosdab@gmail.com',
-                        style: TextStyle(color: _T.p2, fontSize: 10.5)),
+                    const Text(
+                      'rosdab@gmail.com',
+                      style: TextStyle(color: _T.p2, fontSize: 10.5),
+                    ),
                     const SizedBox(height: 6),
-                    _Pill('PREMIUM PRO', _T.amber, _T.amberBg),
+                    _Pill('PREMIUM', _T.amber, _T.amberBg),
                   ],
                 ),
               ),
@@ -135,15 +144,27 @@ class _ProfileCard extends StatelessWidget {
 
 class _InfoRow extends StatelessWidget {
   final String label, value;
+
   const _InfoRow(this.label, this.value);
+
   @override
   Widget build(BuildContext context) => Row(
     mainAxisAlignment: MainAxisAlignment.spaceBetween,
     children: [
-      Text(label, style: const TextStyle(color: _T.p2, fontSize: 11)),
-      Text(value,
-          style: const TextStyle(
-              color: _T.p1, fontSize: 11, fontWeight: FontWeight.w600)),
+      AppText(
+        label,
+        color: AppColors.textDark,
+        fontSize: 11,
+        fontWeight: FontWeight.w700,
+      ),
+      AppText(
+        value,
+        style: const TextStyle(
+          color: AppColors.textDark,
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
     ],
   );
 }
@@ -169,19 +190,25 @@ class _BrokerConnections extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Broker Connections',
-                  style: TextStyle(
-                      color: _T.p1,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 13)),
+              const Text(
+                'Broker Connections',
+                style: TextStyle(
+                  color: _T.p1,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 13,
+                ),
+              ),
               TextButton(
                 onPressed: () {},
                 style: TextButton.styleFrom(
-                    padding: EdgeInsets.zero,
-                    minimumSize: Size.zero,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap),
-                child: const Text('Manage Connections',
-                    style: TextStyle(color: _T.blue, fontSize: 11)),
+                  padding: EdgeInsets.zero,
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                child: const Text(
+                  'Manage Connections',
+                  style: TextStyle(color: _T.blue, fontSize: 11),
+                ),
               ),
             ],
           ),
@@ -196,6 +223,7 @@ class _BrokerConnections extends StatelessWidget {
 class _BrokerRow extends StatelessWidget {
   final String name, sub;
   final bool connected;
+
   const _BrokerRow(this.name, this.sub, this.connected);
 
   @override
@@ -203,11 +231,18 @@ class _BrokerRow extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: _T.bg,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: _T.border),
+          color: AppColors.textWhite,
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.black_border.withValues(alpha: 0.04), // Ultra-soft black
+              blurRadius: 12,                                      // Smooth spread
+              offset: const Offset(0, 4),                          // Moves shadow slightly downward
+            ),
+          ],
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.border.withValues(alpha: 0.12)),
         ),
         child: Row(
           children: [
@@ -218,20 +253,26 @@ class _BrokerRow extends StatelessWidget {
                 color: _T.blue.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(50),
               ),
-              child: const Icon(Icons.account_balance, color: _T.blue, size: 15),
+              child: const Icon(
+                Icons.account_balance,
+                color: _T.blue,
+                size: 15,
+              ),
             ),
             const SizedBox(width: 10),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(name,
-                      style: const TextStyle(
-                          color: _T.p1,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600)),
-                  Text(sub,
-                      style: const TextStyle(color: _T.p2, fontSize: 10)),
+                  Text(
+                    name,
+                    style: const TextStyle(
+                      color: _T.p1,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  Text(sub, style: const TextStyle(color: _T.p2, fontSize: 10)),
                 ],
               ),
             ),
@@ -259,12 +300,15 @@ class _SubscriptionCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('SUBSCRIPTION',
-              style: TextStyle(
-                  color: _T.p3,
-                  fontSize: 10,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0.8)),
+          const Text(
+            'SUBSCRIPTION',
+            style: TextStyle(
+              color: _T.p3,
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.8,
+            ),
+          ),
           const SizedBox(height: 10),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -273,35 +317,46 @@ class _SubscriptionCard extends StatelessWidget {
               const Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Premium Plan',
-                      style: TextStyle(
-                          color: _T.p1,
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700)),
+                  Text(
+                    'Premium Plan',
+                    style: TextStyle(
+                      color: _T.p1,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
                   SizedBox(height: 2),
-                  Text('\$29.00 / monthly',
-                      style: TextStyle(color: _T.p2, fontSize: 10.5)),
+                  Text(
+                    '\$29.00 / monthly',
+                    style: TextStyle(color: _T.p2, fontSize: 10.5),
+                  ),
                 ],
               ),
               Container(
-                padding:
-                const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: _T.blue,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Text('21',
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800)),
+                child: const Text(
+                  '21',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
               ),
             ],
           ),
           const SizedBox(height: 4),
-          const Text('DAYS LEFT',
-              style: TextStyle(
-                  color: _T.p3, fontSize: 9, letterSpacing: 0.6)),
+          const Text(
+            'DAYS LEFT',
+            style: TextStyle(color: _T.p3, fontSize: 9, letterSpacing: 0.6),
+          ),
           const SizedBox(height: 12),
           const Divider(color: _T.border, height: 1),
           const SizedBox(height: 10),
@@ -339,11 +394,14 @@ class _ActiveRestrictions extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Active Restrictions',
-                  style: TextStyle(
-                      color: _T.p1,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 13)),
+              const Text(
+                'Active Restrictions',
+                style: TextStyle(
+                  color: _T.p1,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 13,
+                ),
+              ),
               _Pill('STATUS: ACTIVE', _T.amber, _T.amberBg),
             ],
           ),
@@ -351,23 +409,36 @@ class _ActiveRestrictions extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                  child: _RestrictionItem(
-                      'Daily Trade Limit', '5 trades', _T.red)),
+                child: _RestrictionItem(
+                  'Daily Trade Limit',
+                  '5 trades',
+                  _T.red,
+                ),
+              ),
               const SizedBox(width: 10),
               Expanded(
-                  child: _RestrictionItem(
-                      'Max Position Size', '\$10,000', _T.amber)),
+                child: _RestrictionItem(
+                  'Max Position Size',
+                  '\$10,000',
+                  _T.amber,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 10),
           Row(
             children: [
               Expanded(
-                  child: _RestrictionItem(
-                      'Instruments', 'Single/Stocks', _T.blue)),
+                child: _RestrictionItem(
+                  'Instruments',
+                  'Single/Stocks',
+                  _T.blue,
+                ),
+              ),
               const SizedBox(width: 10),
               Expanded(
-                  child: _RestrictionItem('Risk Level', 'Unknown', _T.purple)),
+                child: _RestrictionItem('Risk Level', 'Unknown', _T.purple),
+              ),
             ],
           ),
           const SizedBox(height: 12),
@@ -381,13 +452,16 @@ class _ActiveRestrictions extends StatelessWidget {
             ),
             child: Row(
               children: [
-                Icon(Icons.warning_amber_rounded,
-                    color: _T.amber, size: 15),
+                Icon(Icons.warning_amber_rounded, color: _T.amber, size: 15),
                 const SizedBox(width: 8),
                 const Expanded(
                   child: Text(
                     'Contact is locked until your supervisor admin unlocks your set of limit.',
-                    style: TextStyle(color: _T.amber, fontSize: 10.5, height: 1.4),
+                    style: TextStyle(
+                      color: _T.amber,
+                      fontSize: 10.5,
+                      height: 1.4,
+                    ),
                   ),
                 ),
               ],
@@ -402,6 +476,7 @@ class _ActiveRestrictions extends StatelessWidget {
 class _RestrictionItem extends StatelessWidget {
   final String label, value;
   final Color color;
+
   const _RestrictionItem(this.label, this.value, this.color);
 
   @override
@@ -416,14 +491,24 @@ class _RestrictionItem extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label,
-              style: TextStyle(
-                  color: color, fontSize: 9.5, fontWeight: FontWeight.w600,
-                  letterSpacing: 0.2)),
+          Text(
+            label,
+            style: TextStyle(
+              color: color,
+              fontSize: 9.5,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.2,
+            ),
+          ),
           const SizedBox(height: 3),
-          Text(value,
-              style: const TextStyle(
-                  color: _T.p1, fontSize: 12, fontWeight: FontWeight.w700)),
+          Text(
+            value,
+            style: const TextStyle(
+              color: _T.p1,
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
         ],
       ),
     );
@@ -442,9 +527,14 @@ class _DisciplineStats extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Trading Discipline Stats',
-              style: TextStyle(
-                  color: _T.p1, fontWeight: FontWeight.w700, fontSize: 13)),
+          const Text(
+            'Trading Discipline Stats',
+            style: TextStyle(
+              color: _T.p1,
+              fontWeight: FontWeight.w700,
+              fontSize: 13,
+            ),
+          ),
           const SizedBox(height: 14),
           Row(
             children: [
@@ -461,8 +551,10 @@ class _DisciplineStats extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Hours Spent From Controlling',
-                  style: TextStyle(color: _T.p2, fontSize: 11)),
+              const Text(
+                'Hours Spent From Controlling',
+                style: TextStyle(color: _T.p2, fontSize: 11),
+              ),
               _Pill('104h', _T.blue, _T.blueBg),
             ],
           ),
@@ -475,6 +567,7 @@ class _DisciplineStats extends StatelessWidget {
 class _StatBox extends StatelessWidget {
   final String value, label;
   final Color color;
+
   const _StatBox(this.value, this.label, this.color);
 
   @override
@@ -488,14 +581,24 @@ class _StatBox extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Text(value,
-              style: TextStyle(
-                  color: color, fontSize: 22, fontWeight: FontWeight.w800)),
+          Text(
+            value,
+            style: TextStyle(
+              color: color,
+              fontSize: 22,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
           const SizedBox(height: 3),
-          Text(label,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                  color: _T.p2, fontSize: 9, letterSpacing: 0.4)),
+          Text(
+            label,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: _T.p2,
+              fontSize: 9,
+              letterSpacing: 0.4,
+            ),
+          ),
         ],
       ),
     );
@@ -521,15 +624,18 @@ class _AccountSettings extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('ACCOUNT SETTINGS',
-              style: TextStyle(
-                  color: _T.p3,
-                  fontSize: 10,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0.8)),
+          const Text(
+            'ACCOUNT SETTINGS',
+            style: TextStyle(
+              color: _T.p3,
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.8,
+            ),
+          ),
           const SizedBox(height: 10),
           ..._items.map(
-                (e) => _SettingRow(icon: e.$1, label: e.$2, active: e.$3),
+            (e) => _SettingRow(icon: e.$1, label: e.$2, active: e.$3),
           ),
         ],
       ),
@@ -541,8 +647,12 @@ class _SettingRow extends StatefulWidget {
   final IconData icon;
   final String label;
   final bool active;
-  const _SettingRow(
-      {required this.icon, required this.label, required this.active});
+
+  const _SettingRow({
+    required this.icon,
+    required this.label,
+    required this.active,
+  });
 
   @override
   State<_SettingRow> createState() => _SettingRowState();
@@ -556,7 +666,7 @@ class _SettingRowState extends State<_SettingRow> {
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       onEnter: (_) => setState(() => _hovered = true),
-      onExit:  (_) => setState(() => _hovered = false),
+      onExit: (_) => setState(() => _hovered = false),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 120),
         margin: const EdgeInsets.only(bottom: 4),
@@ -570,8 +680,10 @@ class _SettingRowState extends State<_SettingRow> {
             Icon(widget.icon, color: _T.p2, size: 16),
             const SizedBox(width: 10),
             Expanded(
-              child: Text(widget.label,
-                  style: const TextStyle(color: _T.p1, fontSize: 12)),
+              child: Text(
+                widget.label,
+                style: const TextStyle(color: _T.p1, fontSize: 12),
+              ),
             ),
             if (widget.active) _Pill('ACTIVE', _T.green, _T.greenBg),
             if (!widget.active)
@@ -595,13 +707,20 @@ class _SystemInfo extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('System Information',
-              style: TextStyle(
-                  color: _T.p1, fontWeight: FontWeight.w700, fontSize: 13)),
+          const Text(
+            'System Information',
+            style: TextStyle(
+              color: _T.p1,
+              fontWeight: FontWeight.w700,
+              fontSize: 13,
+            ),
+          ),
           const SizedBox(height: 14),
           Row(
             children: [
-              Expanded(child: _SysItem('OS', 'Windows 11 (Premium Workstation)')),
+              Expanded(
+                child: _SysItem('OS', 'Windows 11 (Premium Workstation)'),
+              ),
               const SizedBox(width: 14),
               Expanded(child: _SysItem('Version', 'V12.0-stable')),
             ],
@@ -612,8 +731,8 @@ class _SystemInfo extends StatelessWidget {
               Expanded(child: _SysItem('Last Login', 'Today, 08:22 AM')),
               const SizedBox(width: 14),
               Expanded(
-                  child:
-                  _SysItem('Account Type', 'Professional Trader (Active)')),
+                child: _SysItem('Account Type', 'Professional Trader (Active)'),
+              ),
             ],
           ),
         ],
@@ -624,6 +743,7 @@ class _SystemInfo extends StatelessWidget {
 
 class _SysItem extends StatelessWidget {
   final String label, value;
+
   const _SysItem(this.label, this.value);
 
   @override
@@ -638,16 +758,24 @@ class _SysItem extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label,
-              style: const TextStyle(
-                  color: _T.p3,
-                  fontSize: 9.5,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0.4)),
+          Text(
+            label,
+            style: const TextStyle(
+              color: _T.p3,
+              fontSize: 9.5,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.4,
+            ),
+          ),
           const SizedBox(height: 4),
-          Text(value,
-              style: const TextStyle(
-                  color: _T.p1, fontSize: 11.5, fontWeight: FontWeight.w600)),
+          Text(
+            value,
+            style: const TextStyle(
+              color: _T.p1,
+              fontSize: 11.5,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
         ],
       ),
     );
@@ -676,11 +804,14 @@ class _DangerZone extends StatelessWidget {
             children: [
               Icon(Icons.warning_amber_rounded, color: _T.red, size: 16),
               const SizedBox(width: 7),
-              const Text('Danger Zone',
-                  style: TextStyle(
-                      color: _T.red,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700)),
+              const Text(
+                'Danger Zone',
+                style: TextStyle(
+                  color: _T.red,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 12),
@@ -690,7 +821,8 @@ class _DangerZone extends StatelessWidget {
                 child: _DangerAction(
                   icon: Icons.block,
                   title: 'Reset All Restrictions',
-                  desc: 'Align all active locks and trade limits. Action cannot be undone.',
+                  desc:
+                      'Align all active locks and trade limits. Action cannot be undone.',
                   color: _T.amber,
                 ),
               ),
@@ -724,11 +856,13 @@ class _DangerAction extends StatefulWidget {
   final IconData icon;
   final String title, desc;
   final Color color;
-  const _DangerAction(
-      {required this.icon,
-        required this.title,
-        required this.desc,
-        required this.color});
+
+  const _DangerAction({
+    required this.icon,
+    required this.title,
+    required this.desc,
+    required this.color,
+  });
 
   @override
   State<_DangerAction> createState() => _DangerActionState();
@@ -742,7 +876,7 @@ class _DangerActionState extends State<_DangerAction> {
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       onEnter: (_) => setState(() => _hovered = true),
-      onExit:  (_) => setState(() => _hovered = false),
+      onExit: (_) => setState(() => _hovered = false),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 130),
         padding: const EdgeInsets.all(12),
@@ -752,7 +886,8 @@ class _DangerActionState extends State<_DangerAction> {
               : widget.color.withOpacity(0.04),
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
-              color: widget.color.withOpacity(_hovered ? 0.4 : 0.2)),
+            color: widget.color.withOpacity(_hovered ? 0.4 : 0.2),
+          ),
         ),
         child: Row(
           children: [
@@ -762,15 +897,23 @@ class _DangerActionState extends State<_DangerAction> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(widget.title,
-                      style: TextStyle(
-                          color: widget.color,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700)),
+                  Text(
+                    widget.title,
+                    style: TextStyle(
+                      color: widget.color,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
                   const SizedBox(height: 3),
-                  Text(widget.desc,
-                      style:
-                      const TextStyle(color: _T.p2, fontSize: 10.5, height: 1.4)),
+                  Text(
+                    widget.desc,
+                    style: const TextStyle(
+                      color: _T.p2,
+                      fontSize: 10.5,
+                      height: 1.4,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -788,6 +931,7 @@ class _DangerActionState extends State<_DangerAction> {
 class _Card extends StatelessWidget {
   final Widget child;
   final double? width;
+
   const _Card({required this.child, this.width});
 
   @override
@@ -801,9 +945,10 @@ class _Card extends StatelessWidget {
         border: Border.all(color: _T.border),
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withOpacity(0.03),
-              blurRadius: 4,
-              offset: const Offset(0, 1)),
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 4,
+            offset: const Offset(0, 1),
+          ),
         ],
       ),
       child: child,
@@ -814,6 +959,7 @@ class _Card extends StatelessWidget {
 class _Pill extends StatelessWidget {
   final String label;
   final Color fg, bg;
+
   const _Pill(this.label, this.fg, this.bg);
 
   @override
@@ -821,16 +967,16 @@ class _Pill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: bg,
+        //color: AppColors.textDark.withValues(alpha: 0.80),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: fg.withOpacity(0.28), width: 0.8),
+        border: Border.all(color: AppColors.black_border.withValues(alpha: 0.28), width: 0.8),
       ),
-      child: Text(label,
-          style: TextStyle(
-              color: fg,
-              fontSize: 8.5,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.3)),
+      child: AppText(
+        label,
+        color: fg,
+        fontSize: 8,
+        fontWeight: FontWeight.w500,
+      ),
     );
   }
 }
@@ -839,6 +985,7 @@ class _OutlineBtn extends StatefulWidget {
   final String label;
   final Color color;
   final VoidCallback onTap;
+
   const _OutlineBtn(this.label, this.color, {required this.onTap});
 
   @override
@@ -853,7 +1000,7 @@ class _OutlineBtnState extends State<_OutlineBtn> {
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       onEnter: (_) => setState(() => _hovered = true),
-      onExit:  (_) => setState(() => _hovered = false),
+      onExit: (_) => setState(() => _hovered = false),
       child: GestureDetector(
         onTap: widget.onTap,
         child: AnimatedContainer(
@@ -865,15 +1012,19 @@ class _OutlineBtnState extends State<_OutlineBtn> {
                 : widget.color.withOpacity(0.04),
             borderRadius: BorderRadius.circular(7),
             border: Border.all(
-                color: widget.color.withOpacity(_hovered ? 0.6 : 0.35)),
+              color: widget.color.withOpacity(_hovered ? 0.6 : 0.35),
+            ),
           ),
           alignment: Alignment.center,
-          child: Text(widget.label,
-              style: TextStyle(
-                  color: widget.color,
-                  fontSize: 10.5,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0.8)),
+          child: Text(
+            widget.label,
+            style: TextStyle(
+              color: widget.color,
+              fontSize: 10.5,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.8,
+            ),
+          ),
         ),
       ),
     );

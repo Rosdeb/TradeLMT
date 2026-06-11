@@ -128,8 +128,7 @@ class _SubscriptionCardState extends ConsumerState<SubscriptionCard> {
               const SizedBox(height: 14),
               const Divider(color: Color(0xFFE4E7ED), height: 1),
               const SizedBox(height: 14),
-              Expanded(
-                child: Column(
+              Column(
                   children: [
                     for (final feature in widget.features)
                       Padding(
@@ -156,7 +155,6 @@ class _SubscriptionCardState extends ConsumerState<SubscriptionCard> {
                       ),
                   ],
                 ),
-              ),
               SizedBox(
                 width: double.infinity,
                 height: 36,
@@ -168,15 +166,15 @@ class _SubscriptionCardState extends ConsumerState<SubscriptionCard> {
                     elevation: 0,
                     backgroundColor: isSelected
                         ? accent
-                        : const Color(0xFFF9FAFB),
+                        : const Color(0xFFF4F2F2),
                     foregroundColor: isSelected
                         ? Colors.white
-                        : const Color(0xFF374151),
+                        : const Color(0xFF535C73),
                     side: BorderSide(
                       color: isSelected ? accent : const Color(0xFFD1D5DB),
                     ),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(7),
+                      borderRadius: BorderRadius.circular(50),
                     ),
                   ),
                   child: Text(

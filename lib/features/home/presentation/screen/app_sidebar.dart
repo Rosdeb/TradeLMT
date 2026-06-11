@@ -132,7 +132,6 @@ class _NavTileState extends State<_NavTile> {
                     ? const Color(0x0FFFFFFF)
                     : Colors.transparent,
                 borderRadius: BorderRadius.circular(10),
-
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,

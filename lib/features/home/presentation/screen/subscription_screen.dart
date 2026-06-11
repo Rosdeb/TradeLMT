@@ -4,6 +4,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../components/AppText/appText.dart';
 import '../widgets/subscription_card.dart';
 
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../../components/AppText/appText.dart';
+import '../widgets/subscription_card.dart';
+
 class SubscriptionScreen extends ConsumerWidget {
   const SubscriptionScreen({super.key});
 
@@ -11,107 +17,110 @@ class SubscriptionScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F6FA),
-      body: Padding(
-        padding: const EdgeInsets.fromLTRB(28, 24, 28, 24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+      // FIX 1: Wrap body in Align and ConstrainedBox to limit max width on large screens
+      body: Align(
+        alignment: Alignment.topCenter, // Keeps content top-aligned but centered horizontally
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1200), // Prevents cards from becoming too wide
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(28, 24, 28, 24),
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      AppText(
-                        'Subscription',
-                        style: TextStyle(
-                          color: Color(0xFF111827),
-                          fontSize: 28,
-                          fontWeight: FontWeight.w800,
-                        ),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          AppText(
+                            'Subscription',
+                            style: TextStyle(
+                              color: Color(0xFF111827),
+                              fontSize: 28,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                          SizedBox(height: 5),
+                          Text(
+                            'Manage plan access, billing limits, and trading workspace capacity.',
+                            style: TextStyle(
+                              color: Color(0xFF6B7280),
+                              fontSize: 12.5,
+                            ),
+                          ),
+                        ],
                       ),
-                      SizedBox(height: 5),
-                      Text(
-                        'Manage plan access, billing limits, and trading workspace capacity.',
-                        style: TextStyle(
-                          color: Color(0xFF6B7280),
-                          fontSize: 12.5,
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(width: 16),
+                    const _CurrentPlanBadge(),
+                  ],
                 ),
-                const SizedBox(width: 16),
-                _CurrentPlanBadge(),
+                const SizedBox(height: 18),
+
+                // FIX 2: Removed 'Expanded' wrapper so cards don't stretch to the bottom of the screen
+                const Row(
+                  crossAxisAlignment: CrossAxisAlignment.start, // Changed from stretch to start
+                  children: [
+                    Expanded(
+                      child: SubscriptionCard(
+                        title: 'Starter',
+                        price: '\$9',
+                        period: '/mo',
+                        description: 'For individual traders building a basic workflow.',
+                        features: [
+                          '1 broker connection',
+                          'Core risk dashboard',
+                          '5GB cloud storage',
+                          'Email support',
+                        ],
+                      ),
+                    ),
+                    SizedBox(width: 14),
+                    Expanded(
+                      child: SubscriptionCard(
+                        title: 'Starter Pro',
+                        price: '\$15',
+                        period: '/mo',
+                        description: 'For active traders who need more automation.',
+                        features: [
+                          '3 broker connections',
+                          'Advanced guardrails',
+                          '25GB cloud storage',
+                          'Priority support',
+                        ],
+                        isPopular: true,
+                      ),
+                    ),
+                    SizedBox(width: 14),
+                    Expanded(
+                      child: SubscriptionCard(
+                        title: 'Enterprise',
+                        price: '\$35',
+                        period: '/mo',
+                        description: 'For teams managing multiple desks and accounts.',
+                        features: [
+                          'Unlimited connections',
+                          'Team policy controls',
+                          'More Broker Connection',
+                          'Dedicated onboarding',
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                const _BillingFooter(),
               ],
             ),
-            const SizedBox(height: 18),
-            //const _UsageOverview(),
-            const SizedBox(height: 16),
-            const Expanded(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Expanded(
-                    child: SubscriptionCard(
-                      title: 'Starter',
-                      price: '\$9',
-                      period: '/mo',
-                      description:
-                          'For individual traders building a basic workflow.',
-                      features: [
-                        '1 broker connection',
-                        'Core risk dashboard',
-                        '5GB cloud storage',
-                        'Email support',
-                      ],
-                    ),
-                  ),
-                  SizedBox(width: 14),
-                  Expanded(
-                    child: SubscriptionCard(
-                      title: 'Starter Pro',
-                      price: '\$15',
-                      period: '/mo',
-                      description:
-                          'For active traders who need more automation.',
-                      features: [
-                        '3 broker connections',
-                        'Advanced guardrails',
-                        '25GB cloud storage',
-                        'Priority support',
-                      ],
-                      isPopular: true,
-                    ),
-                  ),
-                  SizedBox(width: 14),
-                  Expanded(
-                    child: SubscriptionCard(
-                      title: 'Enterprise',
-                      price: '\$35',
-                      period: '/mo',
-                      description:
-                          'For teams managing multiple desks and accounts.',
-                      features: [
-                        'Unlimited connections',
-                        'Team policy controls',
-                        'More Broker Connection',
-                        'Dedicated onboarding',
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            const _BillingFooter(),
-          ],
+          ),
         ),
       ),
     );
   }
 }
+
 
 class _CurrentPlanBadge extends StatelessWidget {
   const _CurrentPlanBadge();
@@ -122,7 +131,7 @@ class _CurrentPlanBadge extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: const Color(0xFFE4E7ED)),
         boxShadow: [
           BoxShadow(
@@ -140,11 +149,11 @@ class _CurrentPlanBadge extends StatelessWidget {
             height: 32,
             decoration: BoxDecoration(
               color: const Color(0xFFEFF6FF),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(50),
             ),
             child: const Icon(
-              Icons.workspace_premium_outlined,
-              color: Color(0xFF2563EB),
+              Icons.star,
+              color: Color(0xFFF2C314),
               size: 18,
             ),
           ),

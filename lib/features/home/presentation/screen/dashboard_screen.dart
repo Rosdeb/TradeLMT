@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
@@ -5,6 +7,8 @@ import 'package:raminups/components/AppText/appText.dart';
 import 'package:raminups/core/utils/app_colour.dart';
 import 'package:raminups/features/home/presentation/widgets/journalOverview.dart';
 import 'package:raminups/features/home/presentation/widgets/manualDatePickerLock.dart';
+import '../../../../core/Binace/binance_blocker.dart';
+import '../../../../core/Binace/binance_blocker_service.dart';
 import '../providers/dashboard_providers.dart';
 import '../widgets/iconsButton.dart';
 import '../widgets/tradeJournalSection.dart';
@@ -399,6 +403,9 @@ class DashboardScreen extends ConsumerWidget {
               ],
             ),
 
+            const SizedBox(height: 16),
+            const BinanceBlockButton(),
+
           ],
         ),
       ),
@@ -486,6 +493,111 @@ class TradeLimitCounter extends ConsumerWidget {
           },
         ),
       ],
+    );
+  }
+}
+
+// ── BinanceBlockButton ───────────────────────────────────────────────────────
+
+class BinanceBlockButton extends StatefulWidget {
+  const BinanceBlockButton({super.key});
+  @override
+  State<BinanceBlockButton> createState() => _BinanceBlockButtonState();
+}
+
+class _BinanceBlockButtonState extends State<BinanceBlockButton> {
+  final _service = BinanceBlockerService();
+  bool _isBlocking = false;
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    // Saved state load করো
+    _service.isBlocking().then((v) {
+      setState(() {
+        _isBlocking = v;
+        _loading = false;
+      });
+    });
+  }
+
+  Future<void> _toggle() async {
+    setState(() => _loading = true);
+    if (_isBlocking) {
+      await _service.disableBlock();
+    } else {
+      await _service.enableBlock();
+    }
+    final state = await _service.isBlocking();
+    setState(() {
+      _isBlocking = state;
+      _loading = false;
+    });
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(_isBlocking
+            ? '🔴 Binance blocked — stays blocked until you unblock'
+            : '✅ Binance unblocked'),
+        backgroundColor: _isBlocking ? Colors.red : Colors.green,
+      ));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.07), blurRadius: 4)
+        ],
+      ),
+      child: Row(
+        children: [
+          Icon(
+            _isBlocking ? Icons.block : Icons.check_circle_outline,
+            color: _isBlocking ? Colors.red : Colors.green,
+            size: 26,
+          ),
+          const SizedBox(width: 12),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Binance Block',
+                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
+              Text(
+                _isBlocking
+                    ? 'Blocked permanently until unblocked'
+                    : 'Binance can open freely',
+                style: TextStyle(fontSize: 12, color: Colors.grey),
+              ),
+            ],
+          ),
+          const Spacer(),
+          _loading
+              ? const SizedBox(
+            width: 24, height: 24,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          )
+              : ElevatedButton(
+            onPressed: _toggle,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: _isBlocking ? Colors.orange : Colors.red,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8)),
+            ),
+            child: Text(
+              _isBlocking ? 'Unblock' : 'Block Binance',
+              style: const TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -3,14 +3,14 @@ cmake_minimum_required(VERSION 3.14)
 
 set(EPHEMERAL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/ephemeral")
 
-# Configuration provided via flutter tool.
+# Configuration provided via flutter tools.
 include(${EPHEMERAL_DIR}/generated_config.cmake)
 
 # TODO: Move the rest of this into files in ephemeral. See
 # https://github.com/flutter/flutter/issues/57146.
 set(WRAPPER_ROOT "${EPHEMERAL_DIR}/cpp_client_wrapper")
 
-# Set fallback configurations for older versions of the flutter tool.
+# Set fallback configurations for older versions of the flutter tools.
 if (NOT DEFINED FLUTTER_TARGET_PLATFORM)
   set(FLUTTER_TARGET_PLATFORM "windows-x64")
 endif()
@@ -83,10 +83,10 @@ target_include_directories(flutter_wrapper_app PUBLIC
 )
 add_dependencies(flutter_wrapper_app flutter_assemble)
 
-# === Flutter tool backend ===
+# === Flutter tools backend ===
 # _phony_ is a non-existent file to force this command to run every time,
 # since currently there's no way to get a full input/output list from the
-# flutter tool.
+# flutter tools.
 set(PHONY_OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/_phony_")
 set_source_files_properties("${PHONY_OUTPUT}" PROPERTIES SYMBOLIC TRUE)
 add_custom_command(

@@ -46,7 +46,7 @@ function(APPLY_STANDARD_SETTINGS TARGET)
   target_compile_definitions(${TARGET} PRIVATE "$<$<NOT:$<CONFIG:Debug>>:NDEBUG>")
 endfunction()
 
-# Flutter library and tool build rules.
+# Flutter library and tools build rules.
 set(FLUTTER_MANAGED_DIR "${CMAKE_CURRENT_SOURCE_DIR}/flutter")
 add_subdirectory(${FLUTTER_MANAGED_DIR})
 
@@ -57,7 +57,7 @@ pkg_check_modules(GTK REQUIRED IMPORTED_TARGET gtk+-3.0)
 # Application build; see runner/CMakeLists.txt.
 add_subdirectory("runner")
 
-# Run the Flutter tool portions of the build. This must not be removed.
+# Run the Flutter tools portions of the build. This must not be removed.
 add_dependencies(${BINARY_NAME} flutter_assemble)
 
 # Only the install-generated bundle's copy of the executable will launch

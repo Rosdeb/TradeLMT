@@ -51,9 +51,8 @@ class LogoutDialog extends StatelessWidget {
                 "Are you sure you want to log out from your account?",
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey,
-                  height: 1.5,
+                  fontSize: 12,
+                  color: Colors.black,
                 ),
               ),
 
@@ -62,7 +61,7 @@ class LogoutDialog extends StatelessWidget {
               Row(
                 children: [
                   Expanded(
-                    child: OutlinedButton(
+                    child: TextButton(
                       onPressed: () {
                         Navigator.pop(context);
                       },

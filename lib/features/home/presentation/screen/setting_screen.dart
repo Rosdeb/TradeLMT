@@ -1,6 +1,14 @@
+import 'package:dotted_line/dotted_line.dart';
 import 'package:flutter/material.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:raminups/components/AppText/appText.dart';
+import 'package:raminups/components/Ios_effect/iosTapEffect.dart';
 import 'package:raminups/core/utils/app_colour.dart';
+import 'package:raminups/features/home/presentation/widgets/deletedAccount.dart';
+
+import '../widgets/logout_widgets.dart';
+import '../widgets/outlinebutton.dart';
+import '../widgets/password_change.dart';
 
 // ─────────────────────────────────────────────
 //  THEME TOKENS
@@ -56,7 +64,7 @@ class GuardrailsScreen extends StatelessWidget {
                   const SizedBox(width: 14),
                   const Expanded(child: _ActiveRestrictions()),
                   const SizedBox(width: 14),
-                  const Expanded(child: _DisciplineStats()),
+                  const Expanded(child: _AccountSettings()),
                 ],
               ),
             ),
@@ -66,7 +74,7 @@ class GuardrailsScreen extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(width: 220, child: _AccountSettings()),
+
                 const SizedBox(width: 14),
                 const Expanded(child: _SystemInfo()),
               ],
@@ -109,7 +117,7 @@ class _ProfileCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      'Rosdab Koch',
+                      'Rosdeb Koch',
                       style: TextStyle(
                         color: _T.p1,
                         fontWeight: FontWeight.w700,
@@ -129,7 +137,7 @@ class _ProfileCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 14),
-          const Divider(color: _T.border, height: 1),
+          DottedLine(),
           const SizedBox(height: 12),
           _InfoRow('Member Since', 'Jan 2024'),
           const SizedBox(height: 6),
@@ -303,10 +311,10 @@ class _SubscriptionCard extends StatelessWidget {
           const Text(
             'SUBSCRIPTION',
             style: TextStyle(
-              color: _T.p3,
+              color: AppColors.back_icon,
               fontSize: 10,
               fontWeight: FontWeight.w700,
-              letterSpacing: 0.8,
+              letterSpacing: 0.0,
             ),
           ),
           const SizedBox(height: 10),
@@ -320,42 +328,36 @@ class _SubscriptionCard extends StatelessWidget {
                   Text(
                     'Premium Plan',
                     style: TextStyle(
-                      color: _T.p1,
+                      color: AppColors.black,
                       fontSize: 15,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                   SizedBox(height: 2),
-                  Text(
-                    '\$29.00 / monthly',
-                    style: TextStyle(color: _T.p2, fontSize: 10.5),
-                  ),
+                  Row(
+                    children: [
+                      AppText(
+                        '\$29.00 /',
+                        style: TextStyle(color: AppColors.green, fontSize: 10.5,fontWeight: FontWeight.bold),
+                      ),
+                      AppText(
+                        ' monthly',
+                        style: TextStyle(color: AppColors.black, fontSize: 12,fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  )
+
                 ],
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: _T.blue,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Text(
-                  '21',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ),
+             const Icon(Iconsax.crown_1_copy,color: AppColors.yellow,size: 26,),
             ],
           ),
           const SizedBox(height: 4),
-          const Text(
-            'DAYS LEFT',
-            style: TextStyle(color: _T.p3, fontSize: 9, letterSpacing: 0.6),
+          const AppText(
+            'Days left',
+            color: AppColors.textDark,
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
           ),
           const SizedBox(height: 12),
           const Divider(color: _T.border, height: 1),
@@ -366,12 +368,12 @@ class _SubscriptionCard extends StatelessWidget {
           const SizedBox(height: 12),
           SizedBox(
             width: double.infinity,
-            child: _OutlineBtn('UPGRADE', _T.blue, onTap: () {}),
+            child: OutlineBtn('UPGRADE', _T.blue, onTap: () {}),
           ),
           const SizedBox(height: 6),
           SizedBox(
             width: double.infinity,
-            child: _OutlineBtn('CANCEL', _T.red, onTap: () {}),
+            child: OutlineBtn('CANCEL', _T.red, onTap: () {}),
           ),
         ],
       ),
@@ -402,7 +404,7 @@ class _ActiveRestrictions extends StatelessWidget {
                   fontSize: 13,
                 ),
               ),
-              _Pill('STATUS: ACTIVE', _T.amber, _T.amberBg),
+              _Pill('STATUS: ACTIVE', AppColors.green, AppColors.green),
             ],
           ),
           const SizedBox(height: 12),
@@ -412,7 +414,7 @@ class _ActiveRestrictions extends StatelessWidget {
                 child: _RestrictionItem(
                   'Daily Trade Limit',
                   '5 trades',
-                  _T.red,
+                  AppColors.white
                 ),
               ),
               const SizedBox(width: 10),
@@ -420,7 +422,7 @@ class _ActiveRestrictions extends StatelessWidget {
                 child: _RestrictionItem(
                   'Max Position Size',
                   '\$10,000',
-                  _T.amber,
+                    AppColors.white
                 ),
               ),
             ],
@@ -432,12 +434,12 @@ class _ActiveRestrictions extends StatelessWidget {
                 child: _RestrictionItem(
                   'Instruments',
                   'Single/Stocks',
-                  _T.blue,
+                    AppColors.white
                 ),
               ),
               const SizedBox(width: 10),
               Expanded(
-                child: _RestrictionItem('Risk Level', 'Unknown', _T.purple),
+                child: _RestrictionItem('Risk Level', 'Unknown',  AppColors.white),
               ),
             ],
           ),
@@ -452,14 +454,15 @@ class _ActiveRestrictions extends StatelessWidget {
             ),
             child: Row(
               children: [
-                Icon(Icons.warning_amber_rounded, color: _T.amber, size: 15),
+                Icon(Icons.warning_amber_rounded, color: AppColors.destructiveRed, size: 15),
                 const SizedBox(width: 8),
-                const Expanded(
+                Expanded(
                   child: Text(
-                    'Contact is locked until your supervisor admin unlocks your set of limit.',
+                    'Trade limit reached. Account locked',
                     style: TextStyle(
-                      color: _T.amber,
-                      fontSize: 10.5,
+                      color: AppColors.destructiveRed,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
                       height: 1.4,
                     ),
                   ),
@@ -484,9 +487,17 @@ class _RestrictionItem extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.06),
+        color: color,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: color.withOpacity(0.2)),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.black.withValues(alpha: 0.2),
+            offset: Offset(0, 0),
+            blurRadius: 2
+          ),
+
+        ]
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -494,7 +505,7 @@ class _RestrictionItem extends StatelessWidget {
           Text(
             label,
             style: TextStyle(
-              color: color,
+              color: AppColors.black,
               fontSize: 9.5,
               fontWeight: FontWeight.w600,
               letterSpacing: 0.2,
@@ -503,8 +514,8 @@ class _RestrictionItem extends StatelessWidget {
           const SizedBox(height: 3),
           Text(
             value,
-            style: const TextStyle(
-              color: _T.p1,
+            style:  TextStyle(
+              color: AppColors.black,
               fontSize: 12,
               fontWeight: FontWeight.w700,
             ),
@@ -624,18 +635,28 @@ class _AccountSettings extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'ACCOUNT SETTINGS',
+          const AppText(
+            'Account settings',
             style: TextStyle(
-              color: _T.p3,
-              fontSize: 10,
+              color: AppColors.black,
+              fontSize: 16,
               fontWeight: FontWeight.w700,
               letterSpacing: 0.8,
             ),
           ),
           const SizedBox(height: 10),
           ..._items.map(
-            (e) => _SettingRow(icon: e.$1, label: e.$2, active: e.$3),
+            (e) => _SettingRow(icon: e.$1, label: e.$2, active: e.$3,
+              onTap: (){
+              if (e.$2 == 'Change Password') {
+                showDialog(
+                  context: context,
+                  builder: (context) => const PasswordChangeDialog(),
+                );
+              } else {
+                // Handle other row routing modules here
+              }
+            },),
           ),
         ],
       ),
@@ -647,11 +668,13 @@ class _SettingRow extends StatefulWidget {
   final IconData icon;
   final String label;
   final bool active;
+  final VoidCallback onTap;
 
   const _SettingRow({
     required this.icon,
     required this.label,
     required this.active,
+    required this.onTap,
   });
 
   @override
@@ -660,6 +683,7 @@ class _SettingRow extends StatefulWidget {
 
 class _SettingRowState extends State<_SettingRow> {
   bool _hovered = false;
+  bool _isPressed = false;
 
   @override
   Widget build(BuildContext context) {
@@ -667,28 +691,50 @@ class _SettingRowState extends State<_SettingRow> {
       cursor: SystemMouseCursors.click,
       onEnter: (_) => setState(() => _hovered = true),
       onExit: (_) => setState(() => _hovered = false),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 120),
-        margin: const EdgeInsets.only(bottom: 4),
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
-        decoration: BoxDecoration(
-          color: _hovered ? _T.bg : Colors.transparent,
-          borderRadius: BorderRadius.circular(7),
-        ),
-        child: Row(
-          children: [
-            Icon(widget.icon, color: _T.p2, size: 16),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                widget.label,
-                style: const TextStyle(color: _T.p1, fontSize: 12),
+      child: GestureDetector(
+        onTapDown: (_) => setState(() => _isPressed = true),
+        // Resolves spring scale up back to neutral on successful release
+        onTapUp: (_) {
+          setState(() => _isPressed = false);
+          widget.onTap();
+        },
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 120),
+          margin: const EdgeInsets.only(bottom: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+          decoration: BoxDecoration(
+            color: _hovered ? AppColors.border.withValues(alpha: 0.4) : Colors.white,
+            borderRadius: BorderRadius.circular(7),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.black.withValues(alpha: 0.04),
+                blurRadius: 6,
+                spreadRadius: -2,
+                offset: const Offset(0, 4),
               ),
-            ),
-            if (widget.active) _Pill('ACTIVE', _T.green, _T.greenBg),
-            if (!widget.active)
-              const Icon(Icons.chevron_right, color: _T.p3, size: 16),
-          ],
+              BoxShadow(
+                color: AppColors.black.withValues(alpha: 0.08),
+                blurRadius: 8,
+                spreadRadius: 0,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Icon(widget.icon, color: _T.p2, size: 16),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  widget.label,
+                  style: const TextStyle(color: _T.p1, fontSize: 12),
+                ),
+              ),
+              if (widget.active) _Pill('ACTIVE', _T.green, _T.greenBg),
+              if (!widget.active)
+                const Icon(Icons.chevron_right, color: _T.p3, size: 16),
+            ],
+          ),
         ),
       ),
     );
@@ -793,24 +839,29 @@ class _DangerZone extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: _T.card,
+        color: AppColors.white_bg,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: _T.red.withOpacity(0.3)),
+        border: Border.all(color: AppColors.white_bg.withValues(alpha: 0.3)),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.black.withValues(alpha: 0.09),
+            blurRadius: 2,
+            offset: Offset(0, 1)
+          )
+        ]
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Icons.warning_amber_rounded, color: _T.red, size: 16),
+              Icon(Icons.warning_amber, color: _T.red, size: 16),
               const SizedBox(width: 7),
-              const Text(
+              const AppText(
                 'Danger Zone',
-                style: TextStyle(
-                  color: _T.red,
+                  color: AppColors.red,
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
-                ),
               ),
             ],
           ),
@@ -819,29 +870,37 @@ class _DangerZone extends StatelessWidget {
             children: [
               Expanded(
                 child: _DangerAction(
-                  icon: Icons.block,
+                  onTap: (){
+
+                  },
+                  icon: Icons.block_rounded,
                   title: 'Reset All Restrictions',
-                  desc:
-                      'Align all active locks and trade limits. Action cannot be undone.',
+                  desc: '''Align all active locks & trade limits. Action can't be undone.''',
                   color: _T.amber,
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: _DangerAction(
-                  icon: Icons.delete_outline,
+                  onTap: (){
+                    showDeleteDialog(context);
+                  },
+                  icon: Icons.delete_forever,
                   title: 'Delete Account',
                   desc: 'Permanently removes profile and all trading history.',
-                  color: _T.red,
+                  color: AppColors.red,
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: _DangerAction(
+                  onTap: (){
+                    showLogoutDialog(context);
+                  },
                   icon: Icons.logout,
                   title: 'Logout',
                   desc: 'Disconnects all sessions and returns to login screen.',
-                  color: _T.blue,
+                  color: AppColors.blue,
                 ),
               ),
             ],
@@ -850,17 +909,36 @@ class _DangerZone extends StatelessWidget {
       ),
     );
   }
+  void showLogoutDialog (BuildContext context){
+    showDialog(
+      barrierColor: AppColors.textDark.withValues(alpha: 0.4),
+      context: context,
+      builder: (context) => LogoutDialog(),
+    );
+  }
+
+
+  void showDeleteDialog (BuildContext context){
+    showDialog(
+      barrierColor: AppColors.textDark.withValues(alpha: 0.4),
+      context: context,
+      builder: (context) => DeletedAccount(),
+    );
+  }
+
 }
 
 class _DangerAction extends StatefulWidget {
   final IconData icon;
   final String title, desc;
   final Color color;
+  final VoidCallback onTap;
 
   const _DangerAction({
     required this.icon,
     required this.title,
     required this.desc,
+    required this.onTap,
     required this.color,
   });
 
@@ -877,47 +955,50 @@ class _DangerActionState extends State<_DangerAction> {
       cursor: SystemMouseCursors.click,
       onEnter: (_) => setState(() => _hovered = true),
       onExit: (_) => setState(() => _hovered = false),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 130),
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: _hovered
-              ? widget.color.withOpacity(0.08)
-              : widget.color.withOpacity(0.04),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: widget.color.withOpacity(_hovered ? 0.4 : 0.2),
-          ),
-        ),
-        child: Row(
-          children: [
-            Icon(widget.icon, color: widget.color, size: 18),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    widget.title,
-                    style: TextStyle(
-                      color: widget.color,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(height: 3),
-                  Text(
-                    widget.desc,
-                    style: const TextStyle(
-                      color: _T.p2,
-                      fontSize: 10.5,
-                      height: 1.4,
-                    ),
-                  ),
-                ],
-              ),
+      child: IosTapEffect(
+        onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 130),
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: _hovered
+                ? widget.color.withValues(alpha:0.08)
+                : widget.color.withValues(alpha:0.04),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: widget.color.withValues(alpha:_hovered ? 0.4 : 0.2),
             ),
-          ],
+          ),
+          child: Row(
+            children: [
+              Icon(widget.icon, color: widget.color, size: 18),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      widget.title,
+                      style: TextStyle(
+                        color: widget.color,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      widget.desc,
+                      style: const TextStyle(
+                        color: _T.p2,
+                        fontSize: 10.5,
+                        height: 1.4,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -976,56 +1057,6 @@ class _Pill extends StatelessWidget {
         color: fg,
         fontSize: 8,
         fontWeight: FontWeight.w500,
-      ),
-    );
-  }
-}
-
-class _OutlineBtn extends StatefulWidget {
-  final String label;
-  final Color color;
-  final VoidCallback onTap;
-
-  const _OutlineBtn(this.label, this.color, {required this.onTap});
-
-  @override
-  State<_OutlineBtn> createState() => _OutlineBtnState();
-}
-
-class _OutlineBtnState extends State<_OutlineBtn> {
-  bool _hovered = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      onEnter: (_) => setState(() => _hovered = true),
-      onExit: (_) => setState(() => _hovered = false),
-      child: GestureDetector(
-        onTap: widget.onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 110),
-          height: 32,
-          decoration: BoxDecoration(
-            color: _hovered
-                ? widget.color.withOpacity(0.08)
-                : widget.color.withOpacity(0.04),
-            borderRadius: BorderRadius.circular(7),
-            border: Border.all(
-              color: widget.color.withOpacity(_hovered ? 0.6 : 0.35),
-            ),
-          ),
-          alignment: Alignment.center,
-          child: Text(
-            widget.label,
-            style: TextStyle(
-              color: widget.color,
-              fontSize: 10.5,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.8,
-            ),
-          ),
-        ),
       ),
     );
   }

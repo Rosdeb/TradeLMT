@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:raminups/components/Ios_effect/iosTapEffect.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:window_manager/window_manager.dart';
-
+import 'package:raminups/components/Ios_effect/iosTapEffect.dart';
 import '../../../../core/constants/asset_constants.dart';
 
-class CustomLightTitleBar1 extends StatelessWidget
-    implements PreferredSizeWidget {
+class CustomLightTitleBar1 extends StatelessWidget implements PreferredSizeWidget {
   const CustomLightTitleBar1({super.key});
 
   @override
@@ -21,12 +20,10 @@ class CustomLightTitleBar1 extends StatelessWidget
         child: Row(
           children: [
             Image.asset(
-              Assets.logo,
+              Assets.logo_512,
               height: 40,
             ),
-
             const Spacer(),
-
 
             // User Info
             Row(
@@ -52,13 +49,9 @@ class CustomLightTitleBar1 extends StatelessWidget
                     ),
                   ],
                 ),
-
                 const SizedBox(width: 10),
-
                 IosTapEffect(
-                  onTap: () {
-
-                  },
+                  onTap: () {},
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(100),
                     child: Image.network(
@@ -69,29 +62,19 @@ class CustomLightTitleBar1 extends StatelessWidget
                     ),
                   ),
                 ),
-
               ],
             ),
-
             const SizedBox(width: 20),
 
-            // Minimize
-            IconButton(
-              icon: const Icon(
-                Icons.remove,
-                color: Colors.black,
-                size: 16,
-              ),
+            // Clean Window Controls Section
+            _buildWindowButton(
+              icon: Icons.remove,
+              iconSize: 16,
               onPressed: () async => await windowManager.minimize(),
             ),
-
-            // Maximize
-            IconButton(
-              icon: const Icon(
-                Icons.crop_square,
-                color: Colors.black,
-                size: 14,
-              ),
+            _buildWindowButton(
+              icon: Icons.crop_square,
+              iconSize: 14,
               onPressed: () async {
                 if (await windowManager.isMaximized()) {
                   await windowManager.unmaximize();
@@ -100,18 +83,37 @@ class CustomLightTitleBar1 extends StatelessWidget
                 }
               },
             ),
-
-            // Close
-            IconButton(
-              icon: const Icon(
-                Icons.close,
-                color: Colors.black,
-                size: 16,
-              ),
+            _buildWindowButton(
+              icon: Icons.close,
+              iconSize: 16,
+              isCloseButton: true, // Optional: highlight red color on hover if needed
               onPressed: () async => await windowManager.close(),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  // Refactored Helper widget to eliminate standard frame artifacts
+  Widget _buildWindowButton({
+    required IconData icon,
+    required double iconSize,
+    required VoidCallback onPressed,
+    bool isCloseButton = false,
+  }) {
+    return IconButton(
+      icon: Icon(icon, size: iconSize),
+      onPressed: onPressed,
+      padding: EdgeInsets.zero,
+      splashRadius: 18,
+      style: IconButton.styleFrom(
+        foregroundColor: Colors.black,
+        backgroundColor: Colors.transparent, // Forces transparent state when not active
+        hoverColor: isCloseButton
+            ? Colors.red.withValues(alpha: 0.8)
+            : Colors.black.withOpacity(0.06), // Controlled subtle background overlay ONLY on hover
+        highlightColor: Colors.black.withOpacity(0.1),
       ),
     );
   }

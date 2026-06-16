@@ -144,8 +144,8 @@ class ConnectionScreen extends StatelessWidget {
               child: GridView.builder(
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: _brokers.length,
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 4,
+                gridDelegate:  SliverGridDelegateWithMaxCrossAxisExtent(
+                  maxCrossAxisExtent: 280,
                   crossAxisSpacing: 12,
                   mainAxisSpacing: 12,
                   childAspectRatio: 1.58,

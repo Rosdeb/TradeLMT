@@ -20,7 +20,7 @@ class AppTheme {
       useMaterial3: true,
       colorScheme: _colorScheme,
       scaffoldBackgroundColor: _colorScheme.background,
-
+      fontFamily: "Montserrat",
       // Text
       textTheme: const TextTheme(
         headlineLarge: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),

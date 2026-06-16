@@ -8,35 +8,38 @@ final tradingPlatformsProvider = Provider<List<TradingPlatform>>((ref) {
   return [
     TradingPlatform(
       name: 'Thinkorswim',
-      isConnected: false,
+      islock: false,
       logo: Assets.Thinkorswim,
     ),
     TradingPlatform(
       name: 'Tradovate',
-      isConnected: true,
+      islock: true,
       logo: Assets.Tradeovate,
     ),
     TradingPlatform(
       name: 'TradingView',
-      isConnected: false,
+      islock: false,
       logo: Assets.TradingView,
     ),
     TradingPlatform(
-      isConnected: true,
+      islock: true,
       name: 'Robinhood',
       logo: Assets.Robinhood,
     ),
     TradingPlatform(
       name: 'NinjaTrader',
-      isConnected: false,
+      islock: false,
       logo: Assets.NinjaTrader,
     ),
     TradingPlatform(
-      name: 'Interactive Brokers',
-      isConnected: true,
+      name: 'Interactive',
+      islock: true,
       logo: Assets.InteractiveBroker,
     ),
   ];
 });
+final selectedPlatformsProvider = StateProvider<List<String>>((ref) => []);
 final tradeLimitCountProvider = StateProvider<int>((ref)=>2);
+final weeklytradeLimitCountProvider = StateProvider<int>((ref)=>2);
 final lockDurationProvider = StateProvider<int>((ref) => 4);
+final weeklylockDurationProvider = StateProvider<int>((ref) => 4);

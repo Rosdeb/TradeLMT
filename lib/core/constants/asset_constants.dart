@@ -17,7 +17,8 @@ class Assets {
 
   // 🖼️ Images
   // ================================
-  static const String logo = '$_iconPath/app_logo.png';
+  static const String logo = '$_iconPath/app_icon_logo.png';
+  static const String logo_512 = '$_iconPath/app_logo_512.png';
   static const String splashBg = '$_imagePath/splash_bg.png';
   static const String authBg = '$_imagePath/auth_bg.png';
   static const String emptyState = '$_imagePath/empty.png';

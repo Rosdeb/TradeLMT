@@ -70,7 +70,7 @@ class AppSidebar extends ConsumerWidget {
   }
  void showLogoutDialog (BuildContext context){
    showDialog(
-     barrierColor: Color(0xFFCEE6E5).withOpacity(0.90),
+     barrierColor: AppColors.textDark.withValues(alpha: 0.4),
      context: context,
      builder: (context) => LogoutDialog(),
    );

@@ -1,11 +1,11 @@
 class TradingPlatform {
   final String name;
-  final bool isConnected;
+  final bool islock;
   final String logo;
 
   const TradingPlatform({
     required this.name,
-    this.isConnected = false,
+    this.islock = false,
     required this.logo,
   });
 }

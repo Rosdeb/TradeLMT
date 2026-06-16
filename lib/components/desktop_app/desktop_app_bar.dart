@@ -19,7 +19,7 @@ class CustomLightTitleBar extends StatelessWidget implements PreferredSizeWidget
         child: Row(
           children: [
             // App Title/Logo
-            Image.asset(Assets.logo),
+            Image.asset(Assets.logo_512),
             const Spacer(),
 
             // Minimize Button (Black Icon)

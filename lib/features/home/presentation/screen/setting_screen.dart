@@ -9,6 +9,9 @@ import 'package:raminups/features/home/presentation/widgets/deletedAccount.dart'
 import '../widgets/logout_widgets.dart';
 import '../widgets/outlinebutton.dart';
 import '../widgets/password_change.dart';
+import '../widgets/edit_profile.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../providers/dashboard_providers.dart';
 
 // ─────────────────────────────────────────────
 //  THEME TOKENS
@@ -93,59 +96,165 @@ class GuardrailsScreen extends StatelessWidget {
 // ─────────────────────────────────────────────
 //  PROFILE CARD
 // ─────────────────────────────────────────────
-class _ProfileCard extends StatelessWidget {
+class _ProfileCard extends ConsumerWidget {
   const _ProfileCard();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final userProfileAsync = ref.watch(userProfileProvider);
+
     return _Card(
       width: 220,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              CircleAvatar(
-                radius: 25,
-                backgroundImage: NetworkImage(
-                  "https://static.vecteezy.com/system/resources/thumbnails/005/346/410/small/close-up-portrait-of-smiling-handsome-young-caucasian-man-face-looking-at-camera-on-isolated-light-gray-studio-background-photo.jpg",
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Rosdeb Koch',
-                      style: TextStyle(
-                        color: _T.p1,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 14,
+      child: userProfileAsync.when(
+        data: (user) => Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                IosTapEffect(
+                  onTap: (){
+                    showDialog(
+                      context: context,
+                      builder: (context) => const EditProfileDialog(),
+                    );
+                  },
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      CircleAvatar(
+                        radius: 25,
+                        backgroundImage: user.avatar != null
+                            ? NetworkImage(user.avatar!)
+                            : const NetworkImage(
+                                "https://static.vecteezy.com/system/resources/thumbnails/005/346/410/small/close-up-portrait-of-smiling-handsome-young-caucasian-man-face-looking-at-camera-on-isolated-light-gray-studio-background-photo.jpg",
+                              ),
                       ),
-                    ),
-                    const SizedBox(height: 2),
-                    const Text(
-                      'rosdab@gmail.com',
-                      style: TextStyle(color: _T.p2, fontSize: 10.5),
-                    ),
-                    const SizedBox(height: 6),
-                    _Pill('PREMIUM', _T.amber, _T.amberBg),
-                  ],
+                       Container(
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.25),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.edit, color: Colors.white, size: 16),
+                        ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          DottedLine(),
-          const SizedBox(height: 12),
-          _InfoRow('Member Since', 'Jan 2024'),
-          const SizedBox(height: 6),
-          _InfoRow('Role', 'Profiles'),
-          const SizedBox(height: 6),
-          _InfoRow('IDFK', 'India'),
-        ],
+                const SizedBox(width: 15),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        user.name,
+                        style: const TextStyle(
+                          color: _T.p1,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 14,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        user.email,
+                        style: const TextStyle(color: _T.p2, fontSize: 10.5),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 6),
+                      _Pill((user.subscription ?? 'STARTER').toUpperCase(), _T.amber, _T.amberBg),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            DottedLine(),
+            const SizedBox(height: 14),
+            _InfoRow('Member Since', user.createdAt.toLocal().toString().split(' ')[0]),
+            const SizedBox(height: 8),
+            _InfoRow('Role', 'Trader'),
+            const SizedBox(height: 8),
+            _InfoRow('Status', 'Active'),
+          ],
+        ),
+        loading: () => const _ProfileCardShimmer(),
+        error: (err, stack) => SizedBox(
+          height: 150,
+          child: Center(child: Text('Error loading profile: $err')),
+        ),
       ),
+    );
+  }
+}
+
+class _ProfileCardShimmer extends StatelessWidget {
+  const _ProfileCardShimmer();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Container(
+              width: 50,
+              height: 50,
+              decoration: BoxDecoration(
+                color: Colors.grey[200],
+                shape: BoxShape.circle,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(width: 100, height: 14, color: Colors.grey[200]),
+                  const SizedBox(height: 6),
+                  Container(width: 140, height: 10, color: Colors.grey[200]),
+                  const SizedBox(height: 8),
+                  Container(
+                    width: 60,
+                    height: 16,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[200],
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 14),
+        DottedLine(dashColor: Colors.grey.shade200),
+        const SizedBox(height: 12),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Container(width: 80, height: 11, color: Colors.grey[200]),
+            Container(width: 60, height: 11, color: Colors.grey[200]),
+          ],
+        ),
+        const SizedBox(height: 10),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Container(width: 40, height: 11, color: Colors.grey[200]),
+            Container(width: 50, height: 11, color: Colors.grey[200]),
+          ],
+        ),
+        const SizedBox(height: 10),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Container(width: 40, height: 11, color: Colors.grey[200]),
+            Container(width: 40, height: 11, color: Colors.grey[200]),
+          ],
+        ),
+      ],
     );
   }
 }

@@ -31,7 +31,7 @@ class AppColors {
 
   static const sidebarBg    = Color(0xFFD6D6D8);
   static const activeGreen  = Color(0xFF22C55E);
-  static const activeGlow   = Color(0x1F22C55E);
+  static const activeGlow   = Color(0x1F65BA84);
   static const mutedIcon    = Color(0xFF5E6165);
 
   // Content

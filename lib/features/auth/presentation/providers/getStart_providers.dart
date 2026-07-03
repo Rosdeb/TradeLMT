@@ -5,3 +5,4 @@ import 'package:flutter_riverpod/legacy.dart';
 // 1 = Login panel
 // 2 = Create Account panel
 final onboardingStepProvider = StateProvider<int>((ref) => 0);
+

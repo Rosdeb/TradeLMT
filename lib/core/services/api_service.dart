@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../constants/api_constants.dart';
 
@@ -22,9 +23,15 @@ class ApiService {
   ) {
     _dio.interceptors.add(
       InterceptorsWrapper(
-        onRequest: (options, handler) {
-          // Token later add korba
-          // options.headers['Authorization'] = 'Bearer $token';
+        onRequest: (options, handler) async {
+          final requiresAuth = options.extra['requiresAuth'] ?? true;
+          if (requiresAuth) {
+            final prefs = await SharedPreferences.getInstance();
+            final token = prefs.getString('auth_token');
+            if (token != null && token.isNotEmpty) {
+              options.headers['Authorization'] = 'Bearer $token';
+            }
+          }
           return handler.next(options);
         },
         onError: (DioException error, handler) {
@@ -37,11 +44,13 @@ class ApiService {
   Future<Response> get(
       String endpoint, {
         Map<String, dynamic>? queryParameters,
+        bool requiresAuth = true,
       }) async {
     try {
       return await _dio.get(
         endpoint,
         queryParameters: queryParameters,
+        options: Options(extra: {'requiresAuth': requiresAuth}),
       );
     } on DioException catch (e) {
       throw _handleError(e);
@@ -51,11 +60,13 @@ class ApiService {
   Future<Response> post(
       String endpoint, {
         dynamic data,
+        bool requiresAuth = true,
       }) async {
     try {
       return await _dio.post(
         endpoint,
         data: data,
+        options: Options(extra: {'requiresAuth': requiresAuth}),
       );
     } on DioException catch (e) {
       throw _handleError(e);
@@ -65,11 +76,29 @@ class ApiService {
   Future<Response> put(
       String endpoint, {
         dynamic data,
+        bool requiresAuth = true,
       }) async {
     try {
       return await _dio.put(
         endpoint,
         data: data,
+        options: Options(extra: {'requiresAuth': requiresAuth}),
+      );
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  Future<Response> patch(
+      String endpoint, {
+        dynamic data,
+        bool requiresAuth = true,
+      }) async {
+    try {
+      return await _dio.patch(
+        endpoint,
+        data: data,
+        options: Options(extra: {'requiresAuth': requiresAuth}),
       );
     } on DioException catch (e) {
       throw _handleError(e);
@@ -79,11 +108,13 @@ class ApiService {
   Future<Response> delete(
       String endpoint, {
         dynamic data,
+        bool requiresAuth = true,
       }) async {
     try {
       return await _dio.delete(
         endpoint,
         data: data,
+        options: Options(extra: {'requiresAuth': requiresAuth}),
       );
     } on DioException catch (e) {
       throw _handleError(e);
@@ -95,6 +126,7 @@ class ApiService {
         required String filePath,
         required String fieldName,
         Map<String, dynamic>? extraData,
+        bool requiresAuth = true,
       }) async {
     try {
       final formData = FormData.fromMap({
@@ -105,6 +137,7 @@ class ApiService {
       return await _dio.post(
         endpoint,
         data: formData,
+        options: Options(extra: {'requiresAuth': requiresAuth}),
       );
     } on DioException catch (e) {
       throw _handleError(e);
@@ -113,7 +146,16 @@ class ApiService {
 
   String _handleError(DioException error) {
     if (error.response != null) {
-      return error.response?.data['message'] ?? 'Something went wrong';
+      final responseData = error.response?.data;
+      if (responseData != null && responseData is Map<String, dynamic>) {
+        final message = responseData['message'];
+        if (message is List) {
+          return message.join('\n');
+        } else if (message is String) {
+          return message;
+        }
+      }
+      return 'Something went wrong';
     }
 
     switch (error.type) {

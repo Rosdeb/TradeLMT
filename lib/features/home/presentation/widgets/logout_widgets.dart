@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-
+import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../../../core/constants/app_constants.dart';
 import '../../../../components/AppText/appText.dart';
 
 class LogoutDialog extends StatelessWidget {
@@ -79,11 +81,15 @@ class LogoutDialog extends StatelessWidget {
 
                   Expanded(
                     child: ElevatedButton.icon(
-                      onPressed: () {
+                      onPressed: () async {
                         // Clear token
-                        // Navigate Login Screen
-
-                        Navigator.pop(context);
+                        final prefs = await SharedPreferences.getInstance();
+                        await prefs.remove('auth_token');
+                        
+                        // Navigate to Splash (Login Screen) using GoRouter
+                        if (context.mounted) {
+                          context.goNamed(AppRoutes.splash);
+                        }
                       },
                       icon: const Icon(Icons.logout),
                       label: const Text("Logout"),

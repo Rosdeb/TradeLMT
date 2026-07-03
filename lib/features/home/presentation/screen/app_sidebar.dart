@@ -5,6 +5,7 @@ import 'package:raminups/components/AppText/appText.dart';
 import 'package:raminups/components/Ios_effect/iosTapEffect.dart';
 import 'package:raminups/core/utils/app_colour.dart';
 import '../providers/home_providers.dart';
+import '../providers/dashboard_providers.dart';
 import '../widgets/logout_widgets.dart';
 
 // ─── static nav data ─────────────────────────────────────────────────────────
@@ -21,6 +22,7 @@ class AppSidebar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selected = ref.watch(activeTabProvider);
+    final userProfileAsync = ref.watch(userProfileProvider);
 
     return SizedBox(
       width: 150,
@@ -28,8 +30,8 @@ class AppSidebar extends ConsumerWidget {
         color: AppColors.white_bg,
         child: Column(
           children: [
-            const SizedBox(height: 20),
-            // Logo
+            const SizedBox(height: 10),
+            
             // Nav items
             Expanded(
               child: ListView.separated(
@@ -131,7 +133,13 @@ class _NavTileState extends State<_NavTile> {
                     : hovered
                     ? const Color(0x0FFFFFFF)
                     : Colors.transparent,
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(8),
+                border: Border(
+                  left: BorderSide(
+                    color: active ? AppColors.activeGreen : Colors.transparent,
+                    width: 3,
+                  ),
+                ),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,

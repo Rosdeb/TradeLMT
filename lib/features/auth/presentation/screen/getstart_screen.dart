@@ -6,12 +6,70 @@ import 'package:raminups/core/constants/app_constants.dart';
 import '../../../../components/GridentButton/Appbutton.dart';
 import '../../../../components/desktop_app/desktop_app_bar.dart';
 import '../providers/getStart_providers.dart';
+import '../providers/authproviders.dart';
 
-class GetstartScreen extends ConsumerWidget {
+import 'package:shared_preferences/shared_preferences.dart';
+
+class GetstartScreen extends ConsumerStatefulWidget {
   const GetstartScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<GetstartScreen> createState() => _GetstartScreenState();
+}
+
+class _GetstartScreenState extends ConsumerState<GetstartScreen> {
+  final TextEditingController _loginEmailController = TextEditingController(text: "");
+  final TextEditingController _loginPasswordController = TextEditingController(text: "");
+
+  final TextEditingController _signupNameController = TextEditingController();
+  final TextEditingController _signupEmailController = TextEditingController();
+  final TextEditingController _signupPasswordController = TextEditingController();
+
+  Future<void> _handleSignUp() async {
+    try {
+      await ref.read(authProvider.notifier).accountSignUp(
+        _signupNameController.text,
+        _signupEmailController.text,
+        _signupPasswordController.text,
+      );
+      if (mounted) {
+        context.goNamed(AppRoutes.home);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString())),
+        );
+      }
+    }
+  }
+
+  Future<void> _handleLogin() async {
+    try {
+      print("Starting login process...");
+      await ref.read(authProvider.notifier).login(
+        _loginEmailController.text,
+        _loginPasswordController.text,
+      );
+      print("Login successful, checking mounted...");
+      if (mounted) {
+        print("Mounted! Navigating to ${AppPaths.home}");
+        context.goNamed(AppRoutes.home);
+      } else {
+        print("Widget is no longer mounted!");
+      }
+    } catch (e) {
+      print("Login error: $e");
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString())),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final currentStep = ref.watch(onboardingStepProvider);
 
     return Scaffold(
@@ -141,9 +199,9 @@ class GetstartScreen extends ConsumerWidget {
         Text("Access your TradeLMT execution workspace.", style: TextStyle(color: Colors.grey[600], fontSize: 14)),
         const SizedBox(height: 32),
 
-        _buildTextField(label: "Email Address", hint: "Enter your email", icon: Icons.email_outlined),
+        _buildTextField(label: "Email Address", hint: "Enter your email", icon: Icons.email_outlined, controller: _loginEmailController),
         const SizedBox(height: 16),
-        _buildTextField(label: "Password", hint: "••••••••", icon: Icons.lock_outline, isObscure: true),
+        _buildTextField(label: "Password", hint: "••••••••", icon: Icons.lock_outline, isObscure: true, controller: _loginPasswordController,),
 
         // Forgot Password trigger text
         Align(
@@ -170,10 +228,9 @@ class GetstartScreen extends ConsumerWidget {
           width: double.infinity,
           height: 52,
           child: GradientButton(
+            isLoading: ref.watch(authProvider),
             text: "Login",
-            onTap: () {
-              context.go(AppPaths.home);
-            },
+            onTap: _handleLogin,
           ),
         ),
         const SizedBox(height: 20),
@@ -216,19 +273,20 @@ class GetstartScreen extends ConsumerWidget {
         Text("Start securing your risk parameters today.", style: TextStyle(color: Colors.grey[600], fontSize: 14)),
         const SizedBox(height: 24),
 
-        _buildTextField(label: "Full Name", hint: "John Doe", icon: Icons.person_outline),
+        _buildTextField(label: "Full Name", hint: "John Doe", icon: Icons.person_outline, controller: _signupNameController),
         const SizedBox(height: 16),
-        _buildTextField(label: "Email Address", hint: "john@example.com", icon: Icons.email_outlined),
+        _buildTextField(label: "Email Address", hint: "john@example.com", icon: Icons.email_outlined, controller: _signupEmailController),
         const SizedBox(height: 16),
-        _buildTextField(label: "Password", hint: "Create password", icon: Icons.lock_outline, isObscure: true),
+        _buildTextField(label: "Password", hint: "Create password", icon: Icons.lock_outline, isObscure: true, controller: _signupPasswordController),
 
         const SizedBox(height: 32),
         SizedBox(
           width: double.infinity,
           height: 52,
           child: GradientButton(
+            isLoading: ref.watch(authProvider),
             text: "Create Account",
-            onTap: () {},
+            onTap: _handleSignUp,
           ),
         ),
       ],
@@ -381,33 +439,54 @@ class GetstartScreen extends ConsumerWidget {
   }
 
   // Reusable text input field element
-  Widget _buildTextField({required String label, required String hint, required IconData icon, bool isObscure = false}) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: Color(0xFF334155))),
-        const SizedBox(height: 6),
-        TextField(
-          obscureText: isObscure,
-          style: const TextStyle(fontSize: 14),
-          decoration: InputDecoration(
-            hintText: hint,
-            prefixIcon: Icon(icon, size: 20, color: const Color(0xFF94A3B8)),
-            hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
-            filled: true,
-            fillColor: const Color(0xFFF8FAFC),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: Color(0xFFE2E8F0), width: 1),
+  Widget _buildTextField({required String label, required String hint, required IconData icon, bool isObscure = false, TextEditingController? controller}) {
+    bool obscureText = isObscure;
+
+    return StatefulBuilder(
+      builder: (context, setState) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(label, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: Color(0xFF334155))),
+            const SizedBox(height: 6),
+            TextField(
+              controller: controller,
+              obscureText: obscureText,
+              style: const TextStyle(fontSize: 14),
+              decoration: InputDecoration(
+                hintText: hint,
+                prefixIcon: Icon(icon, size: 20, color: const Color(0xFF94A3B8)),
+                suffixIcon: isObscure
+                    ? IconButton(
+                        icon: Icon(
+                          obscureText ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                          size: 20,
+                          color: const Color(0xFF94A3B8),
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            obscureText = !obscureText;
+                          });
+                        },
+                      )
+                    : null,
+                hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
+                filled: true,
+                fillColor: const Color(0xFFF8FAFC),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: const BorderSide(color: Color(0xFFE2E8F0), width: 1),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: const BorderSide(color: Color(0xFF22C55E), width: 1.5),
+                ),
+                contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+              ),
             ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: Color(0xFF22C55E), width: 1.5),
-            ),
-            contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-          ),
-        ),
-      ],
+          ],
+        );
+      },
     );
   }
 }

@@ -39,9 +39,12 @@ CustomTransitionPage<dynamic> buildSlideTransitionPage({
 }
 
 
+final initialRouteProvider = Provider<String>((ref) => AppPaths.splash);
+
 final appRouterProvider = Provider<GoRouter>((ref) {
+  final initialRoute = ref.watch(initialRouteProvider);
   return GoRouter(
-    initialLocation: AppPaths.splash,
+    initialLocation: initialRoute,
     routes: [
 
       GoRoute(

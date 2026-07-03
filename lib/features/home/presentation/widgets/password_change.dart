@@ -1,6 +1,9 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:raminups/core/utils/app_colour.dart';
-import '../../../../components/AppText/appText.dart'; // Maintains your exact custom text component path
+import '../../../../components/AppText/appText.dart';
+import '../providers/setting_providers.dart';
 
 class PasswordChangeDialog extends StatefulWidget {
   const PasswordChangeDialog({super.key});
@@ -101,7 +104,7 @@ class _PasswordChangeDialogState extends State<PasswordChangeDialog> {
                   },
                   validator: (value) {
                     if (value == null || value.isEmpty) return "Password cannot be empty";
-                    if (value.length < 6) return "Must be at least 6 characters";
+                    if (value.length < 8) return "Must be at least 8 characters";
                     return null;
                   },
                 ),
@@ -153,29 +156,66 @@ class _PasswordChangeDialogState extends State<PasswordChangeDialog> {
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: ElevatedButton(
-                        onPressed: () {
-                          if (_formKey.currentState!.validate()) {
-                            // Process update logic securely right here
-                            Navigator.pop(context);
-                          }
-                        },
-                        style: ElevatedButton.styleFrom(
-                          minimumSize: const Size(0, 46),
-                          backgroundColor: mintGreen,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(50),
-                          ),
-                        ).copyWith(
-                          overlayColor: WidgetStateProperty.all(Colors.transparent),
-                          mouseCursor: WidgetStateProperty.all(SystemMouseCursors.click),
-                        ),
-                        child: AppText(
-                          "Save Changes",
-                          color: AppColors.textDark,
-                          fontWeight: FontWeight.w500,
-                          fontSize: 12,
-                        ),
+                      child: Consumer(
+                        builder: (context, ref, child) {
+                          final isLoading = ref.watch(passwordChangeProvider);
+                          return ElevatedButton(
+                            onPressed: isLoading
+                                ? null
+                                : () async {
+                                    if (_formKey.currentState!.validate()) {
+                                      try {
+                                        await ref.read(passwordChangeProvider.notifier).changePassword(
+                                          _newPasswordController.text,
+                                          _confirmPasswordController.text,
+                                        );
+                                        if (mounted) {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            const SnackBar(
+                                              content: Text('Password updated successfully!'),
+                                              backgroundColor: Colors.green,
+                                            ),
+                                          );
+                                          Navigator.pop(context);
+                                        }
+                                      } catch (e) {
+                                        if (mounted) {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(
+                                              content: Text(e.toString()),
+                                              backgroundColor: Colors.red,
+                                            ),
+                                          );
+                                        }
+                                      }
+                                    }
+                                  },
+                            style: ElevatedButton.styleFrom(
+                              minimumSize: const Size(0, 46),
+                              backgroundColor: mintGreen,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(50),
+                              ),
+                            ).copyWith(
+                              overlayColor: WidgetStateProperty.all(Colors.transparent),
+                              mouseCursor: WidgetStateProperty.all(SystemMouseCursors.click),
+                            ),
+                            child: isLoading
+                                ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CupertinoActivityIndicator(
+                                      color: Colors.white,
+                                    ),
+                                  )
+                                : AppText(
+                                    "Save Changes",
+                                    color: AppColors.textDark,
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: 12,
+                                  ),
+                          );
+                        }
                       ),
                     ),
                   ],

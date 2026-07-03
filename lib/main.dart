@@ -7,6 +7,8 @@ import 'app/app_initializer.dart';
 import 'core/Binace/binance_blocker_service.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'core/constants/app_constants.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -39,7 +41,16 @@ Future<void> main() async {
     await windowManager.setBrightness(Brightness.dark);
   });
 
-  runApp(const ProviderScope(child: MyApp()));
+  final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString('auth_token');
+  final initialRoute = (token != null && token.isNotEmpty) ? AppPaths.home : AppPaths.splash;
+
+  runApp(ProviderScope(
+    overrides: [
+      initialRouteProvider.overrideWithValue(initialRoute),
+    ],
+    child: const MyApp(),
+  ));
 }
 
 void _launchBinanceWatcher() async {

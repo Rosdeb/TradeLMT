@@ -5,6 +5,7 @@ import 'package:raminups/features/home/presentation/screen/connection_screen.dar
 import 'package:raminups/features/home/presentation/screen/subscription_screen.dart';
 import '../../../../components/desktop_app/desktop_app_bar.dart';
 import '../providers/home_providers.dart';
+import '../providers/dashboard_providers.dart';
 import '../widgets/customDarkTitle.dart';
 import 'app_sidebar.dart';
 import 'dashboard_screen.dart';
@@ -24,6 +25,9 @@ class HomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Trigger /auth/me API call on screen load
+    ref.watch(userProfileProvider);
+    
     final index = ref.watch(activeTabProvider);
 
     return Scaffold(

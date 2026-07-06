@@ -10,6 +10,7 @@ import 'package:raminups/features/home/presentation/widgets/manualDatePickerLock
 import '../../../../core/Binace/binance_blocker.dart';
 import '../../../../core/Binace/binance_blocker_service.dart';
 import '../providers/dashboard_providers.dart';
+import '../providers/connection_providers.dart';
 import '../widgets/iconsButton.dart';
 import '../widgets/tradeJournalSection.dart';
 import '../widgets/trading_list_assets.dart';
@@ -23,6 +24,9 @@ class DashboardScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Fetch the broker list when the dashboard is loaded
+    ref.watch(brokerConnectionsProvider);
+
     final isApiConnected = ref.watch(apiStatusProvider);
     final isTimeLocked = ref.watch(timeLockProvider);
     const mintGreen = Color(0xFF00C887);

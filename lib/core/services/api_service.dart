@@ -42,15 +42,21 @@ class ApiService {
   }
 
   Future<Response> get(
-      String endpoint, {
-        Map<String, dynamic>? queryParameters,
-        bool requiresAuth = true,
-      }) async {
+    String endpoint, {
+    Map<String, dynamic>? queryParameters,
+    bool requiresAuth = true,
+    Options? options,
+  }) async {
     try {
+      final finalOptions = options ?? Options();
+      finalOptions.extra = {
+        ...?finalOptions.extra,
+        'requiresAuth': requiresAuth,
+      };
       return await _dio.get(
         endpoint,
         queryParameters: queryParameters,
-        options: Options(extra: {'requiresAuth': requiresAuth}),
+        options: finalOptions,
       );
     } on DioException catch (e) {
       throw _handleError(e);

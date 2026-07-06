@@ -1,6 +1,4 @@
-import 'dart:ui';
-
-import '../../screen/connection_screen.dart';
+enum BrokerStatus { connected, notConnected, comingSoon }
 
 class BrokerInfo {
   final String name;

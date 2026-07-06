@@ -1,12 +1,11 @@
+import 'dart:async';
+import 'dart:developer' as developer;
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 
-import '../data/models/broker_info.dart';
-
-// ─────────────────────────────────────────────
-//  DATA MODEL
-// ─────────────────────────────────────────────
-
-enum BrokerStatus { connected, notConnected, comingSoon }
+import '../../data/models/broker_connection.dart';
+import '../providers/connection_providers.dart';
 
 // ─────────────────────────────────────────────
 //  THEME TOKENS  (light / white)
@@ -47,69 +46,42 @@ class _T {
 }
 
 // ─────────────────────────────────────────────
-//  BROKER DATA
-// ─────────────────────────────────────────────
-
-const List<BrokerInfo> _brokers = [
-  BrokerInfo(
-    name: 'Thinkorswim',
-    subtitle: 'Equities & Options',
-    icon: "assets/images/Thinkorswim.png",
-    status: BrokerStatus.connected,
-  ),
-  BrokerInfo(
-    name: 'Tradovate',
-    subtitle: 'Futures Execution',
-    icon: "assets/images/Interactive Brokers.png",
-    status: BrokerStatus.notConnected,
-  ),
-  BrokerInfo(
-    name: 'Interactive Brokers',
-    subtitle: 'Global Multi-Asset',
-    icon: "assets/images/Interactive Brokers.png",
-    status: BrokerStatus.connected,
-  ),
-  BrokerInfo(
-    name: 'TradingView',
-    subtitle: 'Chart Integration',
-    icon: "assets/images/Interactive Brokers.png",
-    status: BrokerStatus.notConnected,
-  ),
-  BrokerInfo(
-    name: 'NinjaTrader',
-    subtitle: 'Desktop Terminal',
-    icon: "assets/images/Tradovate.png",
-    status: BrokerStatus.notConnected,
-  ),
-  BrokerInfo(
-    name: 'Tastytrade',
-    subtitle: 'High Probability Trading',
-    icon: "assets/images/Interactive Brokers.png",
-    status: BrokerStatus.connected,
-  ),
-  BrokerInfo(
-    name: 'Robinhood',
-    subtitle: 'Simple Execution',
-    icon: "assets/images/Robinhood.png",
-    status: BrokerStatus.notConnected,
-  ),
-  BrokerInfo(
-    name: 'Next Gateway',
-    subtitle: 'Community Requested',
-    icon: "assets/images/Interactive Brokers.png",
-    status: BrokerStatus.comingSoon,
-  ),
-];
-
-// ─────────────────────────────────────────────
 //  SCREEN
 // ─────────────────────────────────────────────
 
-class ConnectionScreen extends StatelessWidget {
+class ConnectionScreen extends ConsumerStatefulWidget {
   const ConnectionScreen({super.key});
 
   @override
+  ConsumerState<ConnectionScreen> createState() => _ConnectionScreenState();
+}
+
+class _ConnectionScreenState extends ConsumerState<ConnectionScreen> {
+  StreamSubscription<String>? _subscription;
+
+  @override
+  void initState() {
+    super.initState();
+    developer.log('SSE connection initialized: event on', name: 'ConnectionScreen');
+    _subscription = ref.read(brokerSseServiceProvider).connect().listen((event) {
+      developer.log('SSE event received: $event', name: 'ConnectionScreen');
+      if (event.contains('broker_connections_updated')) {
+        ref.invalidate(brokerConnectionsProvider);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    developer.log('SSE connection disposed: event off', name: 'ConnectionScreen');
+    _subscription?.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final connectionsAsync = ref.watch(brokerConnectionsProvider);
+
     return Scaffold(
       backgroundColor: _T.pageBg,
       body: Padding(
@@ -141,16 +113,43 @@ class ConnectionScreen extends StatelessWidget {
 
             // ── Broker Grid ─────────────────────────
             Expanded(
-              child: GridView.builder(
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: _brokers.length,
-                gridDelegate:  SliverGridDelegateWithMaxCrossAxisExtent(
-                  maxCrossAxisExtent: 280,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                  childAspectRatio: 1.58,
+              child: connectionsAsync.when(
+                data: (connections) {
+                  if (connections.isEmpty) {
+                    return const Center(
+                      child: Text(
+                        'No broker connections available.',
+                        style: TextStyle(color: _T.textSecondary),
+                      ),
+                    );
+                  }
+                  return GridView.builder(
+                    itemCount: connections.length,
+                    gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                      maxCrossAxisExtent: 280,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
+                      childAspectRatio: 1.58,
+                    ),
+                    itemBuilder: (context, i) => _BrokerCard(broker: connections[i]),
+                  );
+                },
+                loading: () => GridView.builder(
+                  itemCount: 8,
+                  gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                    maxCrossAxisExtent: 280,
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 12,
+                    childAspectRatio: 1.58,
+                  ),
+                  itemBuilder: (context, i) => const _BrokerCardShimmer(),
                 ),
-                itemBuilder: (context, i) => _BrokerCard(broker: _brokers[i]),
+                error: (error, stack) => Center(
+                  child: Text(
+                    'Error: $error',
+                    style: const TextStyle(color: Colors.red),
+                  ),
+                ),
               ),
             ),
 
@@ -171,7 +170,7 @@ class ConnectionScreen extends StatelessWidget {
 // ─────────────────────────────────────────────
 
 class _BrokerCard extends StatefulWidget {
-  final BrokerInfo broker;
+  final BrokerConnection broker;
   const _BrokerCard({required this.broker});
 
   @override
@@ -184,7 +183,7 @@ class _BrokerCardState extends State<_BrokerCard> {
   @override
   Widget build(BuildContext context) {
     final b = widget.broker;
-    final isComingSoon = b.status == BrokerStatus.comingSoon;
+    final isComingSoon = b.status == 'coming_soon';
 
     return MouseRegion(
       cursor: isComingSoon
@@ -242,14 +241,14 @@ class _BrokerCardState extends State<_BrokerCard> {
                   child: Opacity(
                     opacity: isComingSoon ? 0.45 : 1,
                     child: Image.asset(
-                      b.icon,
+                      b.logoAsset,
                       height: 19,
                       width: 19,
                       fit: BoxFit.contain,
                     ),
                   ),
                 ),
-                _StatusPill(status: b.status),
+                _StatusPill(status: b.status, statusLabel: b.statusLabel),
               ],
             ),
 
@@ -257,7 +256,7 @@ class _BrokerCardState extends State<_BrokerCard> {
 
             // name
             Text(
-              b.name,
+              b.displayName,
               style: TextStyle(
                 color: isComingSoon ? _T.textMuted : _T.textPrimary,
                 fontSize: 13,
@@ -273,7 +272,7 @@ class _BrokerCardState extends State<_BrokerCard> {
 
             const Spacer(),
 
-            if (!isComingSoon) _ActionButton(status: b.status),
+            if (!isComingSoon) _ActionButton(broker: b),
           ],
         ),
       ),
@@ -286,13 +285,17 @@ class _BrokerCardState extends State<_BrokerCard> {
 // ─────────────────────────────────────────────
 
 class _StatusPill extends StatelessWidget {
-  final BrokerStatus status;
-  const _StatusPill({required this.status});
+  final String status;
+  final String statusLabel;
+  const _StatusPill({
+    required this.status,
+    required this.statusLabel,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final isConnected = status == BrokerStatus.connected;
-    final isComingSoon = status == BrokerStatus.comingSoon;
+    final isConnected = status == 'connected';
+    final isComingSoon = status == 'coming_soon';
 
     final Color fg = isConnected
         ? _T.green
@@ -306,11 +309,13 @@ class _StatusPill extends StatelessWidget {
         ? const Color(0xFFF3F4F6)
         : _T.grayBg;
 
-    final String label = isConnected
-        ? '● CONNECTED'
-        : isComingSoon
-        ? '● COMING SOON'
-        : '● NOT CONNECTED';
+    final String label = statusLabel.isNotEmpty
+        ? '● $statusLabel'
+        : (isConnected
+            ? '● CONNECTED'
+            : isComingSoon
+                ? '● COMING SOON'
+                : '● NOT CONNECTED');
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
@@ -336,42 +341,74 @@ class _StatusPill extends StatelessWidget {
 //  ACTION BUTTON
 // ─────────────────────────────────────────────
 
-class _ActionButton extends StatefulWidget {
-  final BrokerStatus status;
-  const _ActionButton({required this.status});
+class _ActionButton extends ConsumerStatefulWidget {
+  final BrokerConnection broker;
+  const _ActionButton({required this.broker});
 
   @override
-  State<_ActionButton> createState() => _ActionButtonState();
+  ConsumerState<_ActionButton> createState() => _ActionButtonState();
 }
 
-class _ActionButtonState extends State<_ActionButton> {
+class _ActionButtonState extends ConsumerState<_ActionButton> {
   bool _hovered = false;
   bool _pressed = false;
+  bool _isLoading = false;
 
   @override
   Widget build(BuildContext context) {
-    final isManage = widget.status == BrokerStatus.connected;
-    final label = isManage ? 'MANAGE' : 'CONNECT';
+    final isManage = widget.broker.status == 'connected';
+    final label = _isLoading
+        ? 'CONNECTING...'
+        : (widget.broker.actionLabel.isNotEmpty
+            ? widget.broker.actionLabel.toUpperCase()
+            : (isManage ? 'MANAGE' : 'CONNECT'));
 
     final Color bg = isManage
-        ? (_pressed
-              ? const Color(0xFFDBEAFE)
-              : (_hovered ? _T.manageBg : _T.manageBg))
-        : (_pressed
-              ? const Color(0xFFE5E7EB)
-              : (_hovered ? _T.btnBgHover : _T.btnBg));
+        ? (_pressed ? const Color(0xFFDBEAFE) : (_hovered ? _T.manageBg : _T.manageBg))
+        : (_pressed ? const Color(0xFFE5E7EB) : (_hovered ? _T.btnBgHover : _T.btnBg));
 
     final Color border = isManage ? _T.manageBorder : _T.btnBorder;
     final Color text = isManage ? _T.manageText : _T.textSecondary;
 
     return MouseRegion(
-      cursor: SystemMouseCursors.click,
+      cursor: _isLoading
+          ? SystemMouseCursors.wait
+          : SystemMouseCursors.click,
       onEnter: (_) => setState(() => _hovered = true),
       onExit: (_) => setState(() => _hovered = false),
       child: GestureDetector(
-        onTapDown: (_) => setState(() => _pressed = true),
-        onTapUp: (_) => setState(() => _pressed = false),
+        onTapDown: _isLoading ? null : (_) => setState(() => _pressed = true),
+        onTapUp: _isLoading ? null : (_) => setState(() => _pressed = false),
         onTapCancel: () => setState(() => _pressed = false),
+        onTap: _isLoading
+            ? null
+            : () async {
+                setState(() => _isLoading = true);
+                try {
+                  final repository = ref.read(connectionRepositoryProvider);
+                  final url = await repository.connectBroker(widget.broker.id);
+
+                  if (url != null && url.isNotEmpty) {
+                    await launchUrl(
+                      Uri.parse(url),
+                      mode: LaunchMode.externalApplication,
+
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Failed to retrieve connection URL.')),
+                    );
+                  }
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error connecting: $e')),
+                  );
+                } finally {
+                  if (mounted) {
+                    setState(() => _isLoading = false);
+                  }
+                }
+              },
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 100),
           width: double.infinity,
@@ -396,6 +433,7 @@ class _ActionButtonState extends State<_ActionButton> {
     );
   }
 }
+
 
 // ─────────────────────────────────────────────
 //  ENCRYPTION FOOTER
@@ -518,3 +556,116 @@ class _EncBadge extends StatelessWidget {
     );
   }
 }
+
+// ─────────────────────────────────────────────
+//  SHIMMER LOADING CARD
+// ─────────────────────────────────────────────
+
+class _BrokerCardShimmer extends StatefulWidget {
+  const _BrokerCardShimmer();
+
+  @override
+  State<_BrokerCardShimmer> createState() => _BrokerCardShimmerState();
+}
+
+class _BrokerCardShimmerState extends State<_BrokerCardShimmer>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        final double opacity = 0.3 + (_controller.value * 0.4);
+        return Container(
+          decoration: BoxDecoration(
+            color: _T.cardBg,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: _T.border,
+              width: 1,
+            ),
+          ),
+          padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
+          child: Opacity(
+            opacity: opacity,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Icon + Status Pill row
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    Container(
+                      width: 80,
+                      height: 18,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                // Name placeholder
+                Container(
+                  width: 100,
+                  height: 13,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                // Subtitle placeholder
+                Container(
+                  width: 140,
+                  height: 10,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+                const Spacer(),
+                // Button placeholder
+                Container(
+                  width: double.infinity,
+                  height: 27,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+

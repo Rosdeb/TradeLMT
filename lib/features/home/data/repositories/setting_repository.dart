@@ -40,4 +40,33 @@ class SettingRepository {
       rethrow;
     }
   }
+
+  Future<Map<String, dynamic>?> getTradeLimit() async {
+    try {
+      final response = await _apiService.get('/trade-limit', requiresAuth: true);
+      return response.data as Map<String, dynamic>?;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> updateTradeLimit({
+    required int dailyLimit,
+    required int lockoutHours,
+    bool isEnabled = true,
+  }) async {
+    try {
+      await _apiService.post(
+        '/trade-limit',
+        data: {
+          'dailyLimit': dailyLimit,
+          'lockoutHours': lockoutHours,
+          'isEnabled': isEnabled,
+        },
+        requiresAuth: true,
+      );
+    } catch (e) {
+      rethrow;
+    }
+  }
 }

@@ -8,6 +8,8 @@ import '../../../auth/data/models/user_model.dart';
 import '../data/models/tradingplatform.dart';
 import '../../data/repositories/setting_repository.dart';
 
+import '../../../../core/Binace/binance_blocker_service.dart';
+
 final tradingPlatformsProvider = Provider<List<TradingPlatform>>((ref) {
   return [
     TradingPlatform(
@@ -68,6 +70,39 @@ final userProfileProvider = FutureProvider<UserModel>((ref) async {
 final isTradeLimitLockedProvider = StateProvider<bool>((ref) => false);
 final remainingTradesProvider = StateProvider<int>((ref) => 1);
 
+bool _hasSyncedTrades = false;
+
+Future<void> _triggerTradeSync(SettingRepository repository) async {
+  if (_hasSyncedTrades) return;
+  _hasSyncedTrades = true;
+  try {
+    final syncResult = await repository.syncTrades();
+    if (syncResult != null && syncResult['lockoutStatus'] != null) {
+      final lockoutStatus = syncResult['lockoutStatus'] as Map<String, dynamic>;
+      final isLocked = lockoutStatus['locked'] as bool? ?? false;
+      if (isLocked) {
+        final lockedUntilStr = lockoutStatus['lockedUntil'] as String?;
+        final appsToBlockRaw = lockoutStatus['appsToBlock'];
+        List<String> appsToBlock = [];
+        if (appsToBlockRaw is List) {
+          appsToBlock = appsToBlockRaw.map((e) => e.toString()).toList();
+        }
+        
+        await BinanceBlockerService().saveSettings(
+          appsToBlock: appsToBlock,
+          lockedUntil: lockedUntilStr,
+        );
+        await BinanceBlockerService().enableBlock();
+      } else {
+        await BinanceBlockerService().disableBlock();
+      }
+    }
+  } catch (e) {
+    print("Sync trades error: $e");
+    // Fail silently if Schwab is not connected or returns 404
+  }
+}
+
 final fetchTradeLimitProvider = FutureProvider<void>((ref) async {
   final repository = ref.watch(settingRepositoryProvider);
   try {
@@ -84,6 +119,10 @@ final fetchTradeLimitProvider = FutureProvider<void>((ref) async {
       ref.read(lockDurationProvider.notifier).state = lockoutHours;
       ref.read(isTradeLimitLockedProvider.notifier).state = isEnabled;
       ref.read(remainingTradesProvider.notifier).state = remaining;
+
+      if (isEnabled) {
+        _triggerTradeSync(repository);
+      }
     }
   } catch (e) {
     // Fail silently or handle accordingly

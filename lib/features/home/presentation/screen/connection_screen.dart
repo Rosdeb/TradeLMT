@@ -63,12 +63,17 @@ class _ConnectionScreenState extends ConsumerState<ConnectionScreen> {
   void initState() {
     super.initState();
     developer.log('SSE connection initialized: event on', name: 'ConnectionScreen');
-    _subscription = ref.read(brokerSseServiceProvider).connect().listen((event) {
-      developer.log('SSE event received: $event', name: 'ConnectionScreen');
-      if (event.contains('broker_connections_updated')) {
-        ref.invalidate(brokerConnectionsProvider);
-      }
-    });
+    _subscription = ref.read(brokerSseServiceProvider).connect().listen(
+      (event) {
+        developer.log('SSE event received: $event', name: 'ConnectionScreen');
+        if (event.contains('broker_connections_updated')) {
+          ref.invalidate(brokerConnectionsProvider);
+        }
+      },
+      onError: (error) {
+        developer.log('SSE connection error: $error', name: 'ConnectionScreen', error: error);
+      },
+    );
   }
 
   @override

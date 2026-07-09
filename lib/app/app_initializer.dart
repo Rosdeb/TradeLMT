@@ -11,7 +11,7 @@ class AppInitializer {
   static Future<void> _startBinanceWatcher() async {
     try {
       final exeDir = File(Platform.resolvedExecutable).parent.path;
-      final watcherPath = '$exeDir/binance_watcher.exe';
+      final watcherPath = Platform.isWindows ? '$exeDir/binance_watcher.exe' : '$exeDir/binance_watcher';
 
       // আগের watcher already চলছে কিনা check করো
       final pidFile = File('${Directory.systemTemp.path}/binance_watcher.pid');
@@ -20,11 +20,18 @@ class AppInitializer {
         final oldPid = int.tryParse(pidStr.trim());
         if (oldPid != null) {
           // Already running — skip
-          final check = await Process.run(
-            'tasklist', ['/FI', 'PID eq $oldPid', '/NH'],
-            runInShell: true,
-          );
-          if (check.stdout.toString().contains(oldPid.toString())) {
+          bool isRunning = false;
+          if (Platform.isWindows) {
+            final check = await Process.run(
+              'tasklist', ['/FI', 'PID eq $oldPid', '/NH'],
+              runInShell: true,
+            );
+            isRunning = check.stdout.toString().contains(oldPid.toString());
+          } else {
+            final check = await Process.run('ps', ['-p', '$oldPid']);
+            isRunning = check.exitCode == 0;
+          }
+          if (isRunning) {
             print('[Init] Watcher already running (PID: $oldPid)');
             return;
           }

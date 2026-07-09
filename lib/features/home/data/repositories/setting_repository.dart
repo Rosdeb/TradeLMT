@@ -50,6 +50,15 @@ class SettingRepository {
     }
   }
 
+  Future<Map<String, dynamic>?> syncTrades() async {
+    try {
+      final response = await _apiService.post('/trades/sync', requiresAuth: true);
+      return response.data as Map<String, dynamic>?;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   Future<void> updateTradeLimit({
     required int dailyLimit,
     required int lockoutHours,

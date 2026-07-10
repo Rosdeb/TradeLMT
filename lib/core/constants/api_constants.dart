@@ -2,7 +2,7 @@ class ApiConstants {
   // ================================
   // 🌐 Base URLs
   // ================================
-  static const String baseUrl = "https://triple-console-sauce-northwest.trycloudflare.com";
+  static const String baseUrl = "https://bowling-bridal-sized-taken.trycloudflare.com";
   static const String socketUrl = "https://socket.yourapp.com";
 
   // ================================

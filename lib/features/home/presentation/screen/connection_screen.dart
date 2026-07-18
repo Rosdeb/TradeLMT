@@ -6,6 +6,8 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../data/models/broker_connection.dart';
 import '../providers/connection_providers.dart';
+import '../providers/setting_providers.dart';
+import 'package:raminups/core/Binace/binance_blocker_service.dart';
 
 // ─────────────────────────────────────────────
 //  THEME TOKENS  (light / white)
@@ -346,6 +348,15 @@ class _StatusPill extends StatelessWidget {
 //  ACTION BUTTON
 // ─────────────────────────────────────────────
 
+enum ConnectionFlowState {
+  idle,
+  openingBrowser,
+  waitingAuth,
+  connected,
+  syncing,
+  failed,
+}
+
 class _ActionButton extends ConsumerStatefulWidget {
   final BrokerConnection broker;
   const _ActionButton({required this.broker});
@@ -358,15 +369,150 @@ class _ActionButtonState extends ConsumerState<_ActionButton> {
   bool _hovered = false;
   bool _pressed = false;
   bool _isLoading = false;
+  ConnectionFlowState _flowState = ConnectionFlowState.idle;
+  Timer? _pollingTimer;
+
+  @override
+  void didUpdateWidget(_ActionButton oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.broker.id == 'thinkorswim' &&
+        oldWidget.broker.status != 'connected' &&
+        widget.broker.status == 'connected') {
+      _triggerSyncFlow();
+    }
+  }
+
+  @override
+  void dispose() {
+    _pollingTimer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _startPollingLoop() async {
+    _pollingTimer?.cancel();
+    final deadline = DateTime.now().add(const Duration(minutes: 5));
+    final repository = ref.read(connectionRepositoryProvider);
+
+    _pollingTimer = Timer.periodic(const Duration(seconds: 2), (timer) async {
+      if (DateTime.now().isBefore(deadline) &&
+          _flowState == ConnectionFlowState.waitingAuth &&
+          mounted) {
+        try {
+          final status = await repository.getSchwabStatus();
+          final bool isConnected = status['connected'] as bool? ?? false;
+
+          if (isConnected) {
+            timer.cancel();
+            if (mounted) {
+              ref.invalidate(brokerConnectionsProvider);
+              _triggerSyncFlow();
+            }
+          }
+        } catch (e) {
+          developer.log('Error polling Schwab status: $e', name: 'ConnectionScreen');
+        }
+      } else {
+        timer.cancel();
+        if (_flowState == ConnectionFlowState.waitingAuth && mounted) {
+          setState(() {
+            _flowState = ConnectionFlowState.failed;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Schwab connection was not completed. Try again.')),
+          );
+        }
+      }
+    });
+  }
+
+  Future<void> _triggerSyncFlow() async {
+    if (_flowState == ConnectionFlowState.syncing) return;
+    setState(() {
+      _flowState = ConnectionFlowState.syncing;
+    });
+
+    try {
+      final settingRepo = ref.read(settingRepositoryProvider);
+      final syncResult = await settingRepo.syncTrades();
+
+      if (syncResult != null && syncResult['lockoutStatus'] != null) {
+        final lockoutStatus = syncResult['lockoutStatus'] as Map<String, dynamic>;
+        final isLocked = lockoutStatus['locked'] as bool? ?? false;
+        if (isLocked) {
+          final lockedUntilStr = lockoutStatus['lockedUntil'] as String?;
+          final appsToBlockRaw = lockoutStatus['appsToBlock'];
+          List<String> appsToBlock = [];
+          if (appsToBlockRaw is List) {
+            appsToBlock = appsToBlockRaw.map((e) => e.toString()).toList();
+          }
+
+          await BinanceBlockerService().saveSettings(
+            appsToBlock: appsToBlock,
+            lockedUntil: lockedUntilStr,
+          );
+          await BinanceBlockerService().enableBlock();
+        } else {
+          await BinanceBlockerService().disableBlock();
+        }
+      }
+
+      if (mounted) {
+        setState(() {
+          _flowState = ConnectionFlowState.connected;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Schwab connected and trades synced successfully!')),
+        );
+      }
+    } catch (e) {
+      developer.log('Error syncing trades: $e', name: 'ConnectionScreen');
+      if (mounted) {
+        setState(() {
+          _flowState = ConnectionFlowState.failed;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Schwab connected, but trade sync failed: $e')),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final isManage = widget.broker.status == 'connected';
-    final label = _isLoading
-        ? 'CONNECTING...'
-        : (widget.broker.actionLabel.isNotEmpty
-            ? widget.broker.actionLabel.toUpperCase()
-            : (isManage ? 'MANAGE' : 'CONNECT'));
+    final isSchwab = widget.broker.id == 'thinkorswim';
+    final isConnected = widget.broker.status == 'connected';
+
+    String label = '';
+    if (isSchwab) {
+      switch (_flowState) {
+        case ConnectionFlowState.idle:
+          label = isConnected ? 'MANAGE' : 'CONNECT';
+          break;
+        case ConnectionFlowState.openingBrowser:
+          label = 'OPENING SCHWAB IN YOUR BROWSER...';
+          break;
+        case ConnectionFlowState.waitingAuth:
+          label = 'WAITING FOR SCHWAB AUTHORIZATION...';
+          break;
+        case ConnectionFlowState.connected:
+          label = 'SCHWAB CONNECTED';
+          break;
+        case ConnectionFlowState.syncing:
+          label = 'SYNCING TRADES...';
+          break;
+        case ConnectionFlowState.failed:
+          label = 'SCHWAB CONNECTION WAS NOT COMPLETED. TRY AGAIN.';
+          break;
+      }
+    } else {
+      label = _isLoading
+          ? 'CONNECTING...'
+          : (widget.broker.actionLabel.isNotEmpty
+              ? widget.broker.actionLabel.toUpperCase()
+              : (isConnected ? 'MANAGE' : 'CONNECT'));
+    }
+
+    final isManage = isConnected || (isSchwab && _flowState == ConnectionFlowState.connected);
 
     final Color bg = isManage
         ? (_pressed ? const Color(0xFFDBEAFE) : (_hovered ? _T.manageBg : _T.manageBg))
@@ -375,45 +521,61 @@ class _ActionButtonState extends ConsumerState<_ActionButton> {
     final Color border = isManage ? _T.manageBorder : _T.btnBorder;
     final Color text = isManage ? _T.manageText : _T.textSecondary;
 
+    final showSpinner = _isLoading || (isSchwab && (_flowState == ConnectionFlowState.openingBrowser || _flowState == ConnectionFlowState.waitingAuth || _flowState == ConnectionFlowState.syncing));
+
     return MouseRegion(
-      cursor: _isLoading
+      cursor: showSpinner
           ? SystemMouseCursors.wait
           : SystemMouseCursors.click,
       onEnter: (_) => setState(() => _hovered = true),
       onExit: (_) => setState(() => _hovered = false),
       child: GestureDetector(
-        onTapDown: _isLoading ? null : (_) => setState(() => _pressed = true),
-        onTapUp: _isLoading ? null : (_) => setState(() => _pressed = false),
+        onTapDown: showSpinner ? null : (_) => setState(() => _pressed = true),
+        onTapUp: showSpinner ? null : (_) => setState(() => _pressed = false),
         onTapCancel: () => setState(() => _pressed = false),
-        onTap: _isLoading
+        onTap: showSpinner
             ? null
             : () async {
-                setState(() => _isLoading = true);
-                try {
-                  final repository = ref.read(connectionRepositoryProvider);
-                  final url = await repository.connectBroker(widget.broker.id);
 
-                  if (url != null && url.isNotEmpty) {
-                    await launchUrl(
-                      Uri.parse(url),
-                      mode: LaunchMode.externalApplication,
+          // Already connected হলে browser open করবে না
+          if (widget.broker.status == 'connected') {
+            // চাইলে Manage screen open করো
+            // Navigator.push(...);
 
-                    );
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Failed to retrieve connection URL.')),
-                    );
-                  }
-                } catch (e) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Error connecting: $e')),
-                  );
-                } finally {
-                  if (mounted) {
-                    setState(() => _isLoading = false);
-                  }
-                }
-              },
+            return;
+          }
+
+          setState(() => _isLoading = true);
+
+          if (isSchwab) {
+            setState(() {
+              _flowState = ConnectionFlowState.openingBrowser;
+            });
+          }
+
+          try {
+            final repository = ref.read(connectionRepositoryProvider);
+            final url = await repository.connectBroker(widget.broker.id);
+
+            if (url != null && url.isNotEmpty) {
+              if (isSchwab) {
+                setState(() {
+                  _flowState = ConnectionFlowState.waitingAuth;
+                });
+                _startPollingLoop();
+              }
+
+              await launchUrl(
+                Uri.parse(url),
+                mode: LaunchMode.externalApplication,
+              );
+            }
+          } finally {
+            if (mounted) {
+              setState(() => _isLoading = false);
+            }
+          }
+        },
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 100),
           width: double.infinity,
@@ -424,14 +586,33 @@ class _ActionButtonState extends ConsumerState<_ActionButton> {
             border: Border.all(color: border, width: 0.9),
           ),
           alignment: Alignment.center,
-          child: Text(
-            label,
-            style: TextStyle(
-              color: text,
-              fontSize: 10,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 1.1,
-            ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (showSpinner) ...[
+                const SizedBox(
+                  width: 10,
+                  height: 10,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 1.5,
+                    valueColor: AlwaysStoppedAnimation<Color>(_T.textSecondary),
+                  ),
+                ),
+                const SizedBox(width: 6),
+              ],
+              Flexible(
+                child: Text(
+                  label,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: text,
+                    fontSize: 9,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.8,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),

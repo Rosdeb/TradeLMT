@@ -33,8 +33,12 @@ class ConnectionRepository {
 
   Future<String?> connectBroker(String brokerId) async {
     try {
+      final String path = brokerId == 'thinkorswim'
+          ? '/schwab/connect-url'
+          : '/broker-connections/$brokerId/connect';
+
       final response = await _apiService.get(
-        '/broker-connections/$brokerId/connect',
+        path,
         requiresAuth: true,
       );
 
@@ -51,4 +55,15 @@ class ConnectionRepository {
     }
   }
 
+  Future<Map<String, dynamic>> getSchwabStatus() async {
+    try {
+      final response = await _apiService.get(
+        '/schwab/status',
+        requiresAuth: true,
+      );
+      return response.data as Map<String, dynamic>;
+    } catch (e) {
+      rethrow;
+    }
+  }
 }

@@ -68,12 +68,18 @@ class _ConnectionScreenState extends ConsumerState<ConnectionScreen> {
     _subscription = ref.read(brokerSseServiceProvider).connect().listen(
       (event) {
         developer.log('SSE event received: $event', name: 'ConnectionScreen');
+        ref.read(sseConnectedProvider.notifier).state = true;
         if (event.contains('broker_connections_updated')) {
           ref.invalidate(brokerConnectionsProvider);
         }
       },
       onError: (error) {
         developer.log('SSE connection error: $error', name: 'ConnectionScreen', error: error);
+        ref.read(sseConnectedProvider.notifier).state = false;
+      },
+      onDone: () {
+        developer.log('SSE connection completed', name: 'ConnectionScreen');
+        ref.read(sseConnectedProvider.notifier).state = false;
       },
     );
   }
@@ -365,12 +371,18 @@ class _ActionButton extends ConsumerStatefulWidget {
   ConsumerState<_ActionButton> createState() => _ActionButtonState();
 }
 
-class _ActionButtonState extends ConsumerState<_ActionButton> {
+class _ActionButtonState extends ConsumerState<_ActionButton> with WidgetsBindingObserver {
   bool _hovered = false;
   bool _pressed = false;
   bool _isLoading = false;
   ConnectionFlowState _flowState = ConnectionFlowState.idle;
   Timer? _pollingTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
 
   @override
   void didUpdateWidget(_ActionButton oldWidget) {
@@ -384,8 +396,49 @@ class _ActionButtonState extends ConsumerState<_ActionButton> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _pollingTimer?.cancel();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // User focused back to the app. Wait briefly to see if connection succeeded.
+      if (widget.broker.id == 'thinkorswim' && _flowState == ConnectionFlowState.waitingAuth) {
+        Future.delayed(const Duration(milliseconds: 1500), () async {
+          if (!mounted) return;
+          try {
+            final repository = ref.read(connectionRepositoryProvider);
+            final status = await repository.getSchwabStatus();
+            final bool isConnected = status['connected'] as bool? ?? false;
+
+            if (isConnected) {
+              ref.invalidate(brokerConnectionsProvider);
+              _triggerSyncFlow();
+            } else {
+              // Succeeded check failed, so the user closed it or came back without completing auth.
+              _pollingTimer?.cancel();
+              setState(() {
+                _flowState = ConnectionFlowState.idle;
+                _isLoading = false;
+              });
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Schwab connection was not completed. Try again.')),
+              );
+            }
+          } catch (e) {
+            if (mounted) {
+              _pollingTimer?.cancel();
+              setState(() {
+                _flowState = ConnectionFlowState.idle;
+                _isLoading = false;
+              });
+            }
+          }
+        });
+      }
+    }
   }
 
   Future<void> _startPollingLoop() async {
@@ -479,6 +532,15 @@ class _ActionButtonState extends ConsumerState<_ActionButton> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<bool>(sseConnectedProvider, (previous, current) {
+      if (widget.broker.id == 'thinkorswim' &&
+          _flowState == ConnectionFlowState.waitingAuth &&
+          !current) {
+        developer.log('SSE went offline. Triggering polling fallback loop...', name: 'ConnectionScreen');
+        _startPollingLoop();
+      }
+    });
+
     final isSchwab = widget.broker.id == 'thinkorswim';
     final isConnected = widget.broker.status == 'connected';
 
@@ -492,7 +554,7 @@ class _ActionButtonState extends ConsumerState<_ActionButton> {
           label = 'OPENING SCHWAB IN YOUR BROWSER...';
           break;
         case ConnectionFlowState.waitingAuth:
-          label = 'WAITING FOR SCHWAB AUTHORIZATION...';
+          label = 'WAITING FOR AUTH... (TAP TO CANCEL)';
           break;
         case ConnectionFlowState.connected:
           label = 'SCHWAB CONNECTED';
@@ -521,61 +583,95 @@ class _ActionButtonState extends ConsumerState<_ActionButton> {
     final Color border = isManage ? _T.manageBorder : _T.btnBorder;
     final Color text = isManage ? _T.manageText : _T.textSecondary;
 
+    final isCancelable = isSchwab && _flowState == ConnectionFlowState.waitingAuth;
     final showSpinner = _isLoading || (isSchwab && (_flowState == ConnectionFlowState.openingBrowser || _flowState == ConnectionFlowState.waitingAuth || _flowState == ConnectionFlowState.syncing));
 
     return MouseRegion(
-      cursor: showSpinner
+      cursor: (showSpinner && !isCancelable)
           ? SystemMouseCursors.wait
           : SystemMouseCursors.click,
       onEnter: (_) => setState(() => _hovered = true),
       onExit: (_) => setState(() => _hovered = false),
       child: GestureDetector(
-        onTapDown: showSpinner ? null : (_) => setState(() => _pressed = true),
-        onTapUp: showSpinner ? null : (_) => setState(() => _pressed = false),
+        onTapDown: (showSpinner && !isCancelable) ? null : (_) => setState(() => _pressed = true),
+        onTapUp: (showSpinner && !isCancelable) ? null : (_) => setState(() => _pressed = false),
         onTapCancel: () => setState(() => _pressed = false),
-        onTap: showSpinner
+        onTap: (showSpinner && !isCancelable)
             ? null
             : () async {
+                if (isCancelable) {
+                  _pollingTimer?.cancel();
+                  setState(() {
+                    _flowState = ConnectionFlowState.idle;
+                    _isLoading = false;
+                  });
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Schwab connection flow cancelled.')),
+                  );
+                  return;
+                }
 
-          // Already connected হলে browser open করবে না
-          if (widget.broker.status == 'connected') {
-            // চাইলে Manage screen open করো
-            // Navigator.push(...);
+                // Already connected হলে browser open করবে না
+                if (widget.broker.status == 'connected') {
+                  return;
+                }
 
-            return;
-          }
+                setState(() => _isLoading = true);
 
-          setState(() => _isLoading = true);
+                if (isSchwab) {
+                  setState(() {
+                    _flowState = ConnectionFlowState.openingBrowser;
+                  });
+                }
 
-          if (isSchwab) {
-            setState(() {
-              _flowState = ConnectionFlowState.openingBrowser;
-            });
-          }
+                try {
+                  final repository = ref.read(connectionRepositoryProvider);
+                  final url = await repository.connectBroker(widget.broker.id);
 
-          try {
-            final repository = ref.read(connectionRepositoryProvider);
-            final url = await repository.connectBroker(widget.broker.id);
+                  if (url != null && url.isNotEmpty) {
+                    if (isSchwab) {
+                      setState(() {
+                        _flowState = ConnectionFlowState.waitingAuth;
+                      });
+                      
+                      final isSseActive = ref.read(sseConnectedProvider);
+                      if (!isSseActive) {
+                        developer.log('SSE is not active. Starting polling loop fallback...', name: 'ConnectionScreen');
+                        _startPollingLoop();
+                      } else {
+                        developer.log('SSE is active. Polling loop fallback skipped.', name: 'ConnectionScreen');
+                      }
+                    }
 
-            if (url != null && url.isNotEmpty) {
-              if (isSchwab) {
-                setState(() {
-                  _flowState = ConnectionFlowState.waitingAuth;
-                });
-                _startPollingLoop();
-              }
-
-              await launchUrl(
-                Uri.parse(url),
-                mode: LaunchMode.externalApplication,
-              );
-            }
-          } finally {
-            if (mounted) {
-              setState(() => _isLoading = false);
-            }
-          }
-        },
+                    await launchUrl(
+                      Uri.parse(url),
+                      mode: LaunchMode.externalApplication,
+                    );
+                  } else {
+                    if (isSchwab) {
+                      setState(() {
+                        _flowState = ConnectionFlowState.failed;
+                      });
+                    }
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Failed to retrieve connection URL.')),
+                    );
+                  }
+                } catch (e) {
+                  if (isSchwab) {
+                    setState(() {
+                      _flowState = ConnectionFlowState.failed;
+                    });
+                  }
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error connecting: $e')),
+                  );
+                } finally {
+                  if (mounted) {
+                    setState(() => _isLoading = false);
+                  }
+                }
+              },
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 100),
           width: double.infinity,

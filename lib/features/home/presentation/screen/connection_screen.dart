@@ -126,8 +126,9 @@ class _ConnectionScreenState extends ConsumerState<ConnectionScreen> {
 
             // ── Broker Grid ─────────────────────────
             Expanded(
-              child: connectionsAsync.when(
-                data: (connections) {
+              child: (() {
+                final connections = connectionsAsync.value;
+                if (connections != null) {
                   if (connections.isEmpty) {
                     return const Center(
                       child: Text(
@@ -144,26 +145,55 @@ class _ConnectionScreenState extends ConsumerState<ConnectionScreen> {
                       mainAxisSpacing: 12,
                       childAspectRatio: 1.58,
                     ),
-                    itemBuilder: (context, i) => _BrokerCard(broker: connections[i]),
+                    itemBuilder: (context, i) => _BrokerCard(
+                      key: ValueKey(connections[i].id),
+                      broker: connections[i],
+                    ),
                   );
-                },
-                loading: () => GridView.builder(
-                  itemCount: 8,
-                  gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                    maxCrossAxisExtent: 280,
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 12,
-                    childAspectRatio: 1.58,
+                }
+
+                return connectionsAsync.when(
+                  data: (connections) {
+                    if (connections.isEmpty) {
+                      return const Center(
+                        child: Text(
+                          'No broker connections available.',
+                          style: TextStyle(color: _T.textSecondary),
+                        ),
+                      );
+                    }
+                    return GridView.builder(
+                      itemCount: connections.length,
+                      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                        maxCrossAxisExtent: 280,
+                        crossAxisSpacing: 12,
+                        mainAxisSpacing: 12,
+                        childAspectRatio: 1.58,
+                      ),
+                      itemBuilder: (context, i) => _BrokerCard(
+                        key: ValueKey(connections[i].id),
+                        broker: connections[i],
+                      ),
+                    );
+                  },
+                  loading: () => GridView.builder(
+                    itemCount: 8,
+                    gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                      maxCrossAxisExtent: 280,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
+                      childAspectRatio: 1.58,
+                    ),
+                    itemBuilder: (context, i) => const _BrokerCardShimmer(),
                   ),
-                  itemBuilder: (context, i) => const _BrokerCardShimmer(),
-                ),
-                error: (error, stack) => Center(
-                  child: Text(
-                    'Error: $error',
-                    style: const TextStyle(color: Colors.red),
+                  error: (error, stack) => Center(
+                    child: Text(
+                      'Error: $error',
+                      style: const TextStyle(color: Colors.red),
+                    ),
                   ),
-                ),
-              ),
+                );
+              })(),
             ),
 
             const SizedBox(height: 14),
@@ -184,7 +214,7 @@ class _ConnectionScreenState extends ConsumerState<ConnectionScreen> {
 
 class _BrokerCard extends StatefulWidget {
   final BrokerConnection broker;
-  const _BrokerCard({required this.broker});
+  const _BrokerCard({super.key, required this.broker});
 
   @override
   State<_BrokerCard> createState() => _BrokerCardState();
@@ -285,7 +315,7 @@ class _BrokerCardState extends State<_BrokerCard> {
 
             const Spacer(),
 
-            if (!isComingSoon) _ActionButton(broker: b),
+            if (!isComingSoon) _ActionButton(key: ValueKey('action_btn_${b.id}'), broker: b),
           ],
         ),
       ),
@@ -365,7 +395,7 @@ enum ConnectionFlowState {
 
 class _ActionButton extends ConsumerStatefulWidget {
   final BrokerConnection broker;
-  const _ActionButton({required this.broker});
+  const _ActionButton({super.key, required this.broker});
 
   @override
   ConsumerState<_ActionButton> createState() => _ActionButtonState();
@@ -417,24 +447,12 @@ class _ActionButtonState extends ConsumerState<_ActionButton> with WidgetsBindin
               ref.invalidate(brokerConnectionsProvider);
               _triggerSyncFlow();
             } else {
-              // Succeeded check failed, so the user closed it or came back without completing auth.
-              _pollingTimer?.cancel();
-              setState(() {
-                _flowState = ConnectionFlowState.idle;
-                _isLoading = false;
-              });
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Schwab connection was not completed. Try again.')),
-              );
+              // If not connected yet, do not cancel or show error. The user might still be in the process,
+              // or the background polling loop/SSE is still running.
+              developer.log('Schwab not connected yet on resume check.', name: 'ConnectionScreen');
             }
           } catch (e) {
-            if (mounted) {
-              _pollingTimer?.cancel();
-              setState(() {
-                _flowState = ConnectionFlowState.idle;
-                _isLoading = false;
-              });
-            }
+            developer.log('Error checking Schwab status on resume: $e', name: 'ConnectionScreen');
           }
         });
       }

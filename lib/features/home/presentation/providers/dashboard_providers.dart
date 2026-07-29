@@ -117,7 +117,16 @@ final fetchTradeLimitProvider = FutureProvider<void>((ref) async {
       
       ref.read(tradeLimitCountProvider.notifier).state = dailyLimit;
       ref.read(lockDurationProvider.notifier).state = lockoutHours;
-      ref.read(isTradeLimitLockedProvider.notifier).state = isEnabled;
+      // Block daily setup only if the trade limit rule is enabled AND either the limit date or the set lock date matches today's date
+      final dateStr = tradeLimit['date'] as String?;
+      final lockDateStr = tradeLimit['lockDate'] as String?;
+      final todayStr = DateTime.now().toLocal().toString().split(' ')[0]; // yyyy-MM-dd
+      
+      final isToday = (dateStr != null && dateStr.startsWith(todayStr)) ||
+                      (lockDateStr != null && lockDateStr.startsWith(todayStr));
+      
+      final shouldLockSetup = isEnabled && isToday;
+      ref.read(isTradeLimitLockedProvider.notifier).state = shouldLockSetup;
       ref.read(remainingTradesProvider.notifier).state = remaining;
 
       if (isEnabled) {

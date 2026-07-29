@@ -60,11 +60,20 @@ class ConnectionScreen extends ConsumerStatefulWidget {
 
 class _ConnectionScreenState extends ConsumerState<ConnectionScreen> {
   StreamSubscription<String>? _subscription;
+  Timer? _pagePollingTimer;
 
   @override
   void initState() {
     super.initState();
     developer.log('SSE connection initialized: event on', name: 'ConnectionScreen');
+    
+    // Start periodic polling fallback loop every 4 seconds while ConnectionScreen is active
+    _pagePollingTimer = Timer.periodic(const Duration(seconds: 4), (_) {
+      if (mounted) {
+        ref.invalidate(brokerConnectionsProvider);
+      }
+    });
+
     _subscription = ref.read(brokerSseServiceProvider).connect().listen(
       (event) {
         developer.log('SSE event received: $event', name: 'ConnectionScreen');
@@ -87,6 +96,7 @@ class _ConnectionScreenState extends ConsumerState<ConnectionScreen> {
   @override
   void dispose() {
     developer.log('SSE connection disposed: event off', name: 'ConnectionScreen');
+    _pagePollingTimer?.cancel();
     _subscription?.cancel();
     super.dispose();
   }
@@ -470,7 +480,8 @@ class _ActionButtonState extends ConsumerState<_ActionButton> with WidgetsBindin
           mounted) {
         try {
           final status = await repository.getSchwabStatus();
-          final bool isConnected = status['connected'] as bool? ?? false;
+          final bool isConnected = (status['connected'] as bool? ?? false) ||
+              status['status'] == 'connected';
 
           if (isConnected) {
             timer.cancel();
@@ -652,13 +663,8 @@ class _ActionButtonState extends ConsumerState<_ActionButton> with WidgetsBindin
                         _flowState = ConnectionFlowState.waitingAuth;
                       });
                       
-                      final isSseActive = ref.read(sseConnectedProvider);
-                      if (!isSseActive) {
-                        developer.log('SSE is not active. Starting polling loop fallback...', name: 'ConnectionScreen');
-                        _startPollingLoop();
-                      } else {
-                        developer.log('SSE is active. Polling loop fallback skipped.', name: 'ConnectionScreen');
-                      }
+                      developer.log('Starting polling loop to check broker connection status...', name: 'ConnectionScreen');
+                      _startPollingLoop();
                     }
 
                     await launchUrl(

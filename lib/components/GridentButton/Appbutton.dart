@@ -34,7 +34,7 @@ class _GradientButtonState extends State<GradientButton> {
       onEnter: (_) => setState(() => _isHovered = true),
       onExit: (_) => setState(() => _isHovered = false),
       child: IosTapEffect(
-        onTap: widget.onTap,
+        onTap: widget.isLoading ? () {} : widget.onTap,
         child: Container(
           height: widget.height,
           decoration: BoxDecoration(

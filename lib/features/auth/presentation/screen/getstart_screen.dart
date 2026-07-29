@@ -7,6 +7,9 @@ import '../../../../components/GridentButton/Appbutton.dart';
 import '../../../../components/desktop_app/desktop_app_bar.dart';
 import '../providers/getStart_providers.dart';
 import '../providers/authproviders.dart';
+import '../../../home/presentation/providers/dashboard_providers.dart';
+import '../../../home/presentation/providers/connection_providers.dart';
+import '../../../home/presentation/providers/home_providers.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -25,6 +28,19 @@ class _GetstartScreenState extends ConsumerState<GetstartScreen> {
   final TextEditingController _signupEmailController = TextEditingController();
   final TextEditingController _signupPasswordController = TextEditingController();
 
+  void _refreshAccountData() {
+    resetTradeSyncState();
+    ref.invalidate(userProfileProvider);
+    ref.invalidate(fetchTradeLimitProvider);
+    ref.invalidate(brokerConnectionsProvider);
+    ref.invalidate(activeTabProvider);
+    ref.invalidate(isTradeLimitLockedProvider);
+    ref.invalidate(remainingTradesProvider);
+    ref.invalidate(tradeLimitCountProvider);
+    ref.invalidate(lockDurationProvider);
+    ref.invalidate(selectedPlatformsProvider);
+  }
+
   Future<void> _handleSignUp() async {
     try {
       await ref.read(authProvider.notifier).accountSignUp(
@@ -32,6 +48,7 @@ class _GetstartScreenState extends ConsumerState<GetstartScreen> {
         _signupEmailController.text,
         _signupPasswordController.text,
       );
+      _refreshAccountData();
       if (mounted) {
         context.goNamed(AppRoutes.home);
       }
@@ -45,6 +62,7 @@ class _GetstartScreenState extends ConsumerState<GetstartScreen> {
   }
 
   Future<void> _handleLogin() async {
+    if (ref.read(authProvider)) return;
     try {
       print("Starting login process...");
       await ref.read(authProvider.notifier).login(
@@ -52,6 +70,7 @@ class _GetstartScreenState extends ConsumerState<GetstartScreen> {
         _loginPasswordController.text,
       );
       print("Login successful, checking mounted...");
+      _refreshAccountData();
       if (mounted) {
         print("Mounted! Navigating to ${AppPaths.home}");
         context.goNamed(AppRoutes.home);

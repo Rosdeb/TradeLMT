@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/constants/app_constants.dart';
-import '../../../../components/AppText/appText.dart';
+import '../providers/connection_providers.dart';
+import '../providers/dashboard_providers.dart';
+import '../providers/home_providers.dart';
+import '../providers/subscription_providers.dart';
 
-class LogoutDialog extends StatelessWidget {
+class LogoutDialog extends ConsumerWidget {
   const LogoutDialog({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Dialog(
       backgroundColor: Colors.white,
       shape: RoundedRectangleBorder(
@@ -82,11 +85,27 @@ class LogoutDialog extends StatelessWidget {
                   Expanded(
                     child: ElevatedButton.icon(
                       onPressed: () async {
-                        // Clear token
+                        // 1. Clear all local cache & tokens completely
                         final prefs = await SharedPreferences.getInstance();
-                        await prefs.remove('auth_token');
+                        await prefs.clear();
                         
-                        // Navigate to Splash (Login Screen) using GoRouter
+                        // 2. Reset global trade sync status
+                        resetTradeSyncState();
+
+                        // 3. Invalidate cached Riverpod providers so old account data isn't preserved
+                        ref.invalidate(userProfileProvider);
+                        ref.invalidate(fetchTradeLimitProvider);
+                        ref.invalidate(brokerConnectionsProvider);
+                        ref.invalidate(activeTabProvider);
+                        ref.invalidate(isTradeLimitLockedProvider);
+                        ref.invalidate(remainingTradesProvider);
+                        ref.invalidate(tradeLimitCountProvider);
+                        ref.invalidate(lockDurationProvider);
+                        ref.invalidate(selectedPlatformsProvider);
+                        ref.invalidate(sseConnectedProvider);
+                        ref.invalidate(selectedPlanProvider);
+
+                        // 4. Navigate to Splash (Login Screen) using GoRouter
                         if (context.mounted) {
                           context.goNamed(AppRoutes.splash);
                         }

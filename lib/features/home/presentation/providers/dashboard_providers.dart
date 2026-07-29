@@ -72,6 +72,10 @@ final remainingTradesProvider = StateProvider<int>((ref) => 1);
 
 bool _hasSyncedTrades = false;
 
+void resetTradeSyncState() {
+  _hasSyncedTrades = false;
+}
+
 Future<void> _triggerTradeSync(SettingRepository repository) async {
   if (_hasSyncedTrades) return;
   _hasSyncedTrades = true;

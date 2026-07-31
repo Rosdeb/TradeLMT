@@ -96,8 +96,8 @@ class TradeJournalSection extends StatelessWidget {
                     child: Row(
                       children: [
                         Container(
-                          width: 20,
-                          height: 20,
+                          width: 16,
+                          height: 18,
                           decoration: BoxDecoration(
                             color: trade['isWin']
                                 ? const Color(0xFF2ECC71)
@@ -238,15 +238,18 @@ class TradeJournalSection extends StatelessWidget {
   }
 
   Widget _buildBar({required double valueFactor, required Color barColor}) {
-    return FractionallySizedBox(
-      heightFactor: valueFactor,
-      child: Container(
-        width: 24,
-        decoration: BoxDecoration(
-          color: barColor,
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(4),
-            topRight: Radius.circular(4),
+    return SizedBox(
+      width: 24,
+      child: FractionallySizedBox(
+        heightFactor: valueFactor,
+        alignment: Alignment.bottomCenter,
+        child: Container(
+          decoration: BoxDecoration(
+            color: barColor,
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(4),
+              topRight: Radius.circular(4),
+            ),
           ),
         ),
       ),

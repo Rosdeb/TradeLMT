@@ -2,8 +2,8 @@ class ApiConstants {
   // ================================
   // 🌐 Base URLs
   // ================================
-  static const String baseUrl = "https://rotary-mild-susan-burn.trycloudflare.com";
-  static const String socketUrl = "https://rotary-mild-susan-burn.trycloudflare.com";
+  static const String baseUrl = "https://crypto.xdtunnel.icu";
+  static const String socketUrl = "https://crypto.xdtunnel.icu";
 
   // ================================
   // 🔐 Auth Endpoints

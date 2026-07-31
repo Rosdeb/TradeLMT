@@ -480,6 +480,7 @@ class _ActionButtonState extends ConsumerState<_ActionButton> with WidgetsBindin
           mounted) {
         try {
           final status = await repository.getSchwabStatus();
+          developer.log('Schwab polling response status: $status', name: 'ConnectionScreen');
           final bool isConnected = (status['connected'] as bool? ?? false) ||
               status['status'] == 'connected';
 

@@ -643,6 +643,20 @@ class _ActionButtonState extends ConsumerState<_ActionButton> with WidgetsBindin
 
                 // Already connected হলে browser open করবে না
                 if (widget.broker.status == 'connected') {
+                  final manageUrlString = isSchwab
+                      ? 'https://schwab.com/'
+                      : widget.broker.manageUrl;
+
+                  if (manageUrlString != null && manageUrlString.isNotEmpty) {
+                    try {
+                      await launchUrl(
+                        Uri.parse(manageUrlString),
+                        mode: LaunchMode.externalApplication,
+                      );
+                    } catch (e) {
+                      developer.log('Error launching manage URL: $e', name: 'ConnectionScreen');
+                    }
+                  }
                   return;
                 }
 

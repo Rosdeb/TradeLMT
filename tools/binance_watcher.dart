@@ -2,14 +2,56 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-const List<String> domainsToBlock = [
-  'tradingview.com',
-  'www.tradingview.com',
-  'schwab.com',
-  'trade.schwab.com',
-  'binance.com',
-  'www.binance.com'
-];
+import 'package:raminups/core/constants/api_constants.dart';
+
+/// Broker keyword -> domains to null-route in the hosts file while blocked.
+/// The keyword is an `appsToBlock` entry (from the backend) with any `.exe` /
+/// `.app` suffix stripped and lower-cased. Nothing here is applied unless the
+/// backend actually names that app.
+const Map<String, List<String>> kBrokerDomains = {
+  'thinkorswim': ['schwab.com', 'www.schwab.com', 'trade.schwab.com', 'client.schwab.com'],
+  'schwab': ['schwab.com', 'www.schwab.com', 'trade.schwab.com', 'client.schwab.com'],
+  'tradingview': ['tradingview.com', 'www.tradingview.com'],
+  'binance': ['binance.com', 'www.binance.com', 'accounts.binance.com'],
+  'tradovate': ['tradovate.com', 'trader.tradovate.com'],
+  'ninjatrader': ['ninjatrader.com', 'www.ninjatrader.com'],
+  'interactivebrokers': ['interactivebrokers.com', 'www.interactivebrokers.com'],
+  'ibkr': ['interactivebrokers.com', 'www.interactivebrokers.com'],
+  'robinhood': ['robinhood.com', 'www.robinhood.com'],
+  'tastytrade': ['tastytrade.com', 'trade.tastytrade.com'],
+  'tastyworks': ['tastytrade.com', 'trade.tastytrade.com'],
+};
+
+/// Every domain the blocker might ever add — used ONLY to scrub stray lines
+/// during cleanup, never to decide what to block.
+final Set<String> kAllBrokerDomains =
+    kBrokerDomains.values.expand((e) => e).toSet();
+
+/// appsToBlock entries -> lower-cased keywords (suffix stripped).
+List<String> keywordsFor(List<String> apps) => apps
+    .map((a) {
+      var k = a.toLowerCase().trim();
+      for (final s in const ['.exe', '.app']) {
+        if (k.endsWith(s)) k = k.substring(0, k.length - s.length);
+      }
+      return k.trim();
+    })
+    .where((k) => k.isNotEmpty)
+    .toList();
+
+/// Keywords -> the domains to block for exactly those brokers.
+List<String> domainsFor(Iterable<String> keywords) {
+  final out = <String>{};
+  for (final k in keywords) {
+    for (final entry in kBrokerDomains.entries) {
+      if (k.contains(entry.key) || entry.key.contains(k)) {
+        out.addAll(entry.value);
+      }
+    }
+  }
+  final list = out.toList()..sort();
+  return list;
+}
 
 void main() async {
   final pidFile = File('${Directory.systemTemp.path}/binance_watcher.pid');
@@ -20,9 +62,9 @@ void main() async {
 
   print('[BinanceWatcher] Started. PID: $pid');
 
-  int pollInterval = 15; 
+  int pollInterval = 15;
   int pollCounter = 12; // Start close to trigger initial poll quickly
-  bool hostsBlockedState = false;
+  String lastHostsSig = '';
 
   Timer.periodic(const Duration(seconds: 1), (timer) async {
     try {
@@ -32,8 +74,8 @@ void main() async {
         state = (await stateFile.readAsString()).trim();
       }
 
-      // 2. Read settings
-      List<String> appsToBlock = ['Binance.exe'];
+      // 2. Read settings. appsToBlock is whatever the backend sent — no default.
+      List<String> appsToBlock = <String>[];
       String? token;
       
       if (await settingsFile.exists()) {
@@ -79,22 +121,25 @@ void main() async {
         if (apiData != null) {
           print('[BinanceWatcher] Polled backend: $apiData');
           
-          bool backendLocked = false;
           bool isLimitRuleEnabled = true;
+          int? remaining;
+          bool lockoutLocked = false;
           String? newLockedUntil;
           List<String>? newApps;
 
-          // Parse limit status
-          if (apiData['remainingTrades'] != null) {
-            final remaining = int.tryParse(apiData['remainingTrades'].toString()) ?? 1;
-            if (remaining <= 0) {
-              backendLocked = true;
-            }
+          if (apiData['tradeLimit'] is Map) {
+            final tradeLimit = apiData['tradeLimit'] as Map;
+            isLimitRuleEnabled = tradeLimit['isEnabled'] == true;
           }
 
+          if (apiData['remainingTrades'] != null) {
+            remaining = int.tryParse(apiData['remainingTrades'].toString());
+          }
+
+          // /lockout/status is the source of truth.
           if (apiData['lockoutStatus'] is Map) {
             final lockout = apiData['lockoutStatus'] as Map;
-            backendLocked = lockout['locked'] == true;
+            lockoutLocked = lockout['locked'] == true;
             if (lockout['lockedUntil'] != null) {
               newLockedUntil = lockout['lockedUntil'].toString();
             }
@@ -103,10 +148,10 @@ void main() async {
             }
           }
 
-          if (apiData['tradeLimit'] is Map) {
-            final tradeLimit = apiData['tradeLimit'] as Map;
-            isLimitRuleEnabled = tradeLimit['isEnabled'] == true;
-          }
+          // Same rule as the in-app TradeLimitState: an explicit lockout always
+          // blocks; the counter only blocks while the rule is enabled.
+          final backendLocked = lockoutLocked ||
+              (isLimitRuleEnabled && remaining != null && remaining <= 0);
 
           // Adjust poll interval: if rule is disabled, no need for intensive pulling (poll every 5 minutes)
           if (!isLimitRuleEnabled) {
@@ -118,7 +163,7 @@ void main() async {
           }
 
           // Save polled state
-          if (isLimitRuleEnabled && backendLocked) {
+          if (backendLocked) {
             await stateFile.writeAsString('blocked');
             state = 'blocked';
 
@@ -140,11 +185,15 @@ void main() async {
 
       // 4. Enforce Blocks
       final isCurrentlyBlocked = (state == 'blocked');
+      final keywords = keywordsFor(appsToBlock).toSet();
+      final activeDomains = isCurrentlyBlocked ? domainsFor(keywords) : <String>[];
 
-      // Sync local DNS/Hosts file block state
-      if (isCurrentlyBlocked != hostsBlockedState) {
-        await updateHostsFile(isCurrentlyBlocked);
-        hostsBlockedState = isCurrentlyBlocked;
+      // Sync the hosts file whenever the block state OR the domain set changes
+      // (the backend can change appsToBlock between polls).
+      final hostsSig = '$isCurrentlyBlocked|${activeDomains.join(',')}';
+      if (hostsSig != lastHostsSig) {
+        await updateHostsFile(isCurrentlyBlocked, activeDomains);
+        lastHostsSig = hostsSig;
       }
 
       // Kill running apps if blocked
@@ -167,16 +216,48 @@ void main() async {
               print('[BinanceWatcher] Killed $app');
             }
           } else if (Platform.isMacOS || Platform.isLinux) {
-            final appName = app.toLowerCase().endsWith('.exe')
-                ? app.substring(0, app.length - 4)
-                : app;
+            // API names are Windows-style ("thinkorswim.exe"). Strip any
+            // .exe/.app suffix and match by process name anywhere — including
+            // an app launched straight from a mounted .dmg.
+            var keyword = app.toLowerCase();
+            for (final suffix in const ['.exe', '.app']) {
+              if (keyword.endsWith(suffix)) {
+                keyword = keyword.substring(0, keyword.length - suffix.length);
+              }
+            }
+            keyword = keyword.trim();
+            if (keyword.isEmpty) continue;
 
-            final check = await Process.run('pgrep', ['-i', appName]);
+            // -f matches the full command path (catches apps run from a mounted
+            // .dmg). Resolve pids ourselves so we never kill this watcher — its
+            // own path contains "binance".
+            final check = await Process.run('pgrep', ['-if', keyword]);
             if (check.exitCode == 0) {
-              await Process.run('pkill', ['-9', '-i', appName]);
-              print('[BinanceWatcher] Killed $appName');
+              final pids = check.stdout
+                  .toString()
+                  .split('\n')
+                  .map((s) => int.tryParse(s.trim()))
+                  .whereType<int>()
+                  .where((p) => p != pid)
+                  .toList();
+              for (final p in pids) {
+                await Process.run('kill', ['-9', '$p']);
+              }
+              if (pids.isNotEmpty) {
+                print('[BinanceWatcher] Killed $keyword -> $pids');
+              }
             }
           }
+        }
+
+        // macOS: force-eject any broker .dmg volume so the user can't run the
+        // app from the disk image or re-mount it during a lockout. Volume-name
+        // keywords are derived from the same backend appsToBlock list, plus a
+        // couple of brand aliases (a Schwab installer volume is "thinkorswim").
+        if (Platform.isMacOS && keywords.isNotEmpty) {
+          final volKeywords = {...keywords};
+          if (keywords.contains('thinkorswim')) volKeywords.add('schwab');
+          await ejectBrokerDmgs(volKeywords);
         }
       }
     } catch (e) {
@@ -187,29 +268,61 @@ void main() async {
   await Completer().future;
 }
 
+/// Polls `/trade-limit` (rule + remaining count) and `/lockout/status` (source
+/// of truth) and merges them into the shape the main loop expects:
+/// `{ tradeLimit, remainingTrades, lockoutStatus: {...} }`.
 Future<Map<String, dynamic>?> pollBackend(String token) async {
+  final limit = await _getJson('${ApiConstants.baseUrl}/trade-limit', token);
+  final lockout = await _getJson('${ApiConstants.baseUrl}/lockout/status', token);
+  if (limit == null && lockout == null) return null;
+  return {
+    if (limit != null) ...limit,
+    if (lockout != null) 'lockoutStatus': lockout,
+  };
+}
+
+Future<Map<String, dynamic>?> _getJson(String url, String token) async {
   final client = HttpClient();
-  // Set connection timeout
   client.connectionTimeout = const Duration(seconds: 5);
   try {
-    final uri = Uri.parse('https://triple-console-sauce-northwest.trycloudflare.com/trade-limit');
-    final request = await client.getUrl(uri);
+    final request = await client.getUrl(Uri.parse(url));
     request.headers.add(HttpHeaders.authorizationHeader, 'Bearer $token');
-    
     final response = await request.close();
     if (response.statusCode == 200) {
-      final responseBody = await response.transform(utf8.decoder).join();
-      return jsonDecode(responseBody) as Map<String, dynamic>;
+      final body = await response.transform(utf8.decoder).join();
+      final decoded = jsonDecode(body);
+      if (decoded is Map<String, dynamic>) return decoded;
+    } else {
+      print('[BinanceWatcher] $url -> HTTP ${response.statusCode}');
     }
   } catch (e) {
-    print('[BinanceWatcher] Polling error: $e');
+    print('[BinanceWatcher] Polling error ($url): $e');
   } finally {
     client.close();
   }
   return null;
 }
 
-Future<void> updateHostsFile(bool block) async {
+/// `hdiutil detach -force` any mounted volume whose name matches a broker
+/// keyword. Idempotent — a re-mount is ejected again on the next loop.
+Future<void> ejectBrokerDmgs(Set<String> keywords) async {
+  try {
+    final vols = Directory('/Volumes');
+    if (!vols.existsSync()) return;
+    for (final entity in vols.listSync()) {
+      final name = entity.path.split('/').last.toLowerCase();
+      if (name == 'macintosh hd') continue;
+      if (keywords.any((k) => k.isNotEmpty && name.contains(k))) {
+        await Process.run('hdiutil', ['detach', '-force', entity.path]);
+        print('[BinanceWatcher] Ejected broker volume: ${entity.path}');
+      }
+    }
+  } catch (e) {
+    print('[BinanceWatcher] DMG eject error: $e');
+  }
+}
+
+Future<void> updateHostsFile(bool block, List<String> domainsToAdd) async {
   try {
     final hostsPath = Platform.isWindows
         ? r'C:\Windows\System32\drivers\etc\hosts'
@@ -220,7 +333,7 @@ Future<void> updateHostsFile(bool block) async {
     final lines = await file.readAsLines();
     final newLines = <String>[];
 
-    // Remove existing blocking block
+    // Strip any previous TradeLMT block (markers) and any stray broker line.
     bool insideBlock = false;
     for (final line in lines) {
       if (line.contains('# TradeLMT Blocker Start')) {
@@ -231,32 +344,23 @@ Future<void> updateHostsFile(bool block) async {
         insideBlock = false;
         continue;
       }
-      if (!insideBlock) {
-        // Also ensure no stray domain lines exist
-        bool containsDomain = false;
-        for (final domain in domainsToBlock) {
-          if (line.contains(domain)) {
-            containsDomain = true;
-            break;
-          }
-        }
-        if (!containsDomain) {
-          newLines.add(line);
-        }
-      }
+      if (insideBlock) continue;
+
+      final stray = kAllBrokerDomains.any((d) => line.contains(d));
+      if (!stray) newLines.add(line);
     }
 
-    if (block) {
+    if (block && domainsToAdd.isNotEmpty) {
       newLines.add('\n# TradeLMT Blocker Start');
-      for (final domain in domainsToBlock) {
+      for (final domain in domainsToAdd) {
         newLines.add('127.0.0.1 $domain');
+        newLines.add('::1 $domain');
       }
       newLines.add('# TradeLMT Blocker End\n');
     }
 
-    // Write back
     await file.writeAsString(newLines.join('\n'));
-    print('[BinanceWatcher] Hosts file updated. Block active: $block');
+    print('[BinanceWatcher] Hosts updated. block=$block domains=$domainsToAdd');
   } catch (e) {
     print('[BinanceWatcher] Error writing to hosts file: $e');
   }

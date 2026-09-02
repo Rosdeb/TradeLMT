@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../constants/api_constants.dart';
+import '../errors/app_exception.dart';
 
 class ApiService {
   final Dio _dio;
@@ -150,31 +151,33 @@ class ApiService {
     }
   }
 
-  String _handleError(DioException error) {
+  ApiException _handleError(DioException error) {
+    final status = error.response?.statusCode;
+
     if (error.response != null) {
       final responseData = error.response?.data;
       if (responseData != null && responseData is Map<String, dynamic>) {
         final message = responseData['message'];
         if (message is List) {
-          return message.join('\n');
+          return ApiException(message.join('\n'), statusCode: status);
         } else if (message is String) {
-          return message;
+          return ApiException(message, statusCode: status);
         }
       }
-      return 'Something went wrong';
+      return ApiException('Something went wrong', statusCode: status);
     }
 
     switch (error.type) {
       case DioExceptionType.connectionTimeout:
-        return 'Connection timeout';
+        return const ApiException('Connection timeout');
       case DioExceptionType.receiveTimeout:
-        return 'Receive timeout';
+        return const ApiException('Receive timeout');
       case DioExceptionType.badResponse:
-        return 'Bad response from server';
+        return const ApiException('Bad response from server');
       case DioExceptionType.cancel:
-        return 'Request cancelled';
+        return const ApiException('Request cancelled');
       default:
-        return 'No internet connection';
+        return const ApiException('No internet connection');
     }
   }
 }

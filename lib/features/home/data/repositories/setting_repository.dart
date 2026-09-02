@@ -50,6 +50,18 @@ class SettingRepository {
     }
   }
 
+  /// `GET /lockout/status` — the backend's source of truth for whether trading
+  /// is blocked right now. Returns `{ locked: false }` or
+  /// `{ locked: true, lockedUntil, reason, appsToBlock: [...] }`.
+  Future<Map<String, dynamic>?> getLockoutStatus() async {
+    try {
+      final response = await _apiService.get('/lockout/status', requiresAuth: true);
+      return response.data as Map<String, dynamic>?;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   Future<Map<String, dynamic>?> syncTrades() async {
     try {
       final response = await _apiService.post('/trades/sync', requiresAuth: true);

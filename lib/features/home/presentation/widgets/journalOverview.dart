@@ -5,15 +5,14 @@ class JournalOverviewWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Using the dark mode background requested by the user/snippet
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 16.0,vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10),
       decoration: BoxDecoration(
-        color: const Color(0xFC7C2C2), // Dark slate/navy background
+        color: const Color(0xFFF7C2C2),
         borderRadius: BorderRadius.circular(12.0),
         border: Border.all(
-          color: const Color(0xFF262C36), // Subtle border outline
+          color: const Color(0xFF262C36),
           width: 1.0,
         ),
       ),
@@ -21,7 +20,7 @@ class JournalOverviewWidget extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Header Row
+          // Header
           const Text(
             'Journal Overview',
             style: TextStyle(
@@ -33,78 +32,84 @@ class JournalOverviewWidget extends StatelessWidget {
           ),
           const SizedBox(height: 8),
 
-          // Metrics Row
-          Row(
-            mainAxisAlignment: MainAxisAlignment.start,
+          // Metrics — Wrap so the tiles flow to the next line on narrow
+          // windows instead of overflowing the row.
+          const Wrap(
+            spacing: 24,
+            runSpacing: 12,
             children: [
-              _buildJournalMetric(
-                isWin: true,
-                title: '60% Wins',
-                subtitle: 'Loss Loss',
-              ),
-              const SizedBox(width: 32), // Spacing between metrics
-              _buildJournalMetric(
-                isWin: false,
-                title: '30% Wins',
-                subtitle: '10% Loss',
-              ),
-              const SizedBox(width: 32),
-              _buildJournalMetric(
-                isWin: false,
-                title: '20% Wins',
-                subtitle: 'Loss Loss',
-              ),
+              _JournalMetric(isWin: true, title: '60% Wins', subtitle: '40% Loss'),
+              _JournalMetric(isWin: false, title: '30% Wins', subtitle: '10% Loss'),
+              _JournalMetric(isWin: false, title: '20% Wins', subtitle: '—'),
             ],
           ),
         ],
       ),
     );
   }
+}
 
-  Widget _buildJournalMetric({
-    required bool isWin,
-    required String title,
-    required String subtitle,
-  }) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Status indicator dot (Green for overall wins, Red for losses/drawdowns)
-        Padding(
-          padding: const EdgeInsets.only(top: 4.0, right: 8.0),
-          child: Container(
-            width: 10,
-            height: 10,
-            decoration: BoxDecoration(
-              color: isWin ? const Color(0xFF2ECC71) : const Color(0xFFE74C3C),
-              shape: BoxShape.circle,
+class _JournalMetric extends StatelessWidget {
+  const _JournalMetric({
+    required this.isWin,
+    required this.title,
+    required this.subtitle,
+  });
+
+  final bool isWin;
+  final String title;
+  final String subtitle;
+
+  @override
+  Widget build(BuildContext context) {
+    return ConstrainedBox(
+      constraints: const BoxConstraints(minWidth: 96, maxWidth: 170),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Status dot
+          Padding(
+            padding: const EdgeInsets.only(top: 4.0, right: 8.0),
+            child: Container(
+              width: 10,
+              height: 10,
+              decoration: BoxDecoration(
+                color: isWin ? const Color(0xFF2ECC71) : const Color(0xFFE74C3C),
+                shape: BoxShape.circle,
+              ),
             ),
           ),
-        ),
-        // Text stats block
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style:  TextStyle(
-                color: Colors.black,
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-              ),
+          // Text stats — allowed to wrap, column sized to its content
+          Flexible(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  softWrap: true,
+                  style: const TextStyle(
+                    color: Colors.black,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  softWrap: true,
+                  style: const TextStyle(
+                    color: Color(0xFF94A3B8),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 2),
-            Text(
-              subtitle,
-              style: const TextStyle(
-                color: Color(0xFF94A3B8), // Muted grey-blue text for readable labels
-                fontSize: 12,
-                fontWeight: FontWeight.w400,
-              ),
-            ),
-          ],
-        ),
-      ],
+          ),
+        ],
+      ),
     );
   }
 }

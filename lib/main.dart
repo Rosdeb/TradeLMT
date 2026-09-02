@@ -14,8 +14,8 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await AppInitializer.init();
 
-  if (Platform.isWindows) {
-   // _launchBinanceWatcher();
+  if (Platform.isWindows || Platform.isMacOS) {
+    // Re-arm an active lockout if the app was quit while blocked (W4).
     await BinanceBlockerService().resumeIfBlocking();
   }
 

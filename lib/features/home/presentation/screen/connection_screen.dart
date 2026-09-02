@@ -7,6 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../data/models/broker_connection.dart';
 import '../providers/connection_providers.dart';
 import '../providers/setting_providers.dart';
+import '../providers/trade_limit_state.dart';
 import 'package:raminups/core/Binace/binance_blocker_service.dart';
 
 // ─────────────────────────────────────────────
@@ -538,6 +539,9 @@ class _ActionButtonState extends ConsumerState<_ActionButton> with WidgetsBindin
           await BinanceBlockerService().disableBlock();
         }
       }
+
+      // Let the trade-limit monitor re-evaluate now that a broker is connected.
+      ref.read(tradeMonitorProvider).refreshNow('broker-connected');
 
       if (mounted) {
         setState(() {

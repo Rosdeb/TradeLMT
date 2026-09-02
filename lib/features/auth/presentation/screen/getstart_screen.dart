@@ -8,6 +8,7 @@ import '../../../../components/desktop_app/desktop_app_bar.dart';
 import '../providers/getStart_providers.dart';
 import '../providers/authproviders.dart';
 import '../../../home/presentation/providers/dashboard_providers.dart';
+import '../../../home/presentation/providers/trade_limit_state.dart';
 import '../../../home/presentation/providers/connection_providers.dart';
 import '../../../home/presentation/providers/home_providers.dart';
 
@@ -29,9 +30,8 @@ class _GetstartScreenState extends ConsumerState<GetstartScreen> {
   final TextEditingController _signupPasswordController = TextEditingController();
 
   void _refreshAccountData() {
-    resetTradeSyncState();
     ref.invalidate(userProfileProvider);
-    ref.invalidate(fetchTradeLimitProvider);
+    ref.invalidate(tradeLimitStateProvider);
     ref.invalidate(brokerConnectionsProvider);
     ref.invalidate(activeTabProvider);
     ref.invalidate(isTradeLimitLockedProvider);

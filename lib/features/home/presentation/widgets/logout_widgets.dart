@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../providers/connection_providers.dart';
 import '../providers/dashboard_providers.dart';
+import '../providers/trade_limit_state.dart';
 import '../providers/home_providers.dart';
 import '../providers/subscription_providers.dart';
 
@@ -85,16 +86,16 @@ class LogoutDialog extends ConsumerWidget {
                   Expanded(
                     child: ElevatedButton.icon(
                       onPressed: () async {
-                        // 1. Clear all local cache & tokens completely
+                        // 1. Stop the trade-limit monitor before the token is gone
+                        ref.read(tradeMonitorProvider).stop();
+
+                        // 2. Clear all local cache & tokens completely
                         final prefs = await SharedPreferences.getInstance();
                         await prefs.clear();
-                        
-                        // 2. Reset global trade sync status
-                        resetTradeSyncState();
 
                         // 3. Invalidate cached Riverpod providers so old account data isn't preserved
                         ref.invalidate(userProfileProvider);
-                        ref.invalidate(fetchTradeLimitProvider);
+                        ref.invalidate(tradeLimitStateProvider);
                         ref.invalidate(brokerConnectionsProvider);
                         ref.invalidate(activeTabProvider);
                         ref.invalidate(isTradeLimitLockedProvider);

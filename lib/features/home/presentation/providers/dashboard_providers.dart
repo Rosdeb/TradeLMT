@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:raminups/core/constants/asset_constants.dart';
@@ -7,8 +5,6 @@ import '../../../../core/services/api_service.dart';
 import '../../../auth/data/models/user_model.dart';
 import '../data/models/tradingplatform.dart';
 import '../../data/repositories/setting_repository.dart';
-
-import '../../../../core/Binace/binance_blocker_service.dart';
 
 final tradingPlatformsProvider = Provider<List<TradingPlatform>>((ref) {
   return [
@@ -67,77 +63,7 @@ final userProfileProvider = FutureProvider<UserModel>((ref) async {
   return userResponse.user;
 });
 
+/// Legacy providers — still read by the dashboard widgets. They are now written
+/// exclusively by `TradeMonitorService`, never fetched ad-hoc.
 final isTradeLimitLockedProvider = StateProvider<bool>((ref) => false);
 final remainingTradesProvider = StateProvider<int>((ref) => 1);
-
-bool _hasSyncedTrades = false;
-
-void resetTradeSyncState() {
-  _hasSyncedTrades = false;
-}
-
-Future<void> _triggerTradeSync(SettingRepository repository) async {
-  if (_hasSyncedTrades) return;
-  _hasSyncedTrades = true;
-  try {
-    final syncResult = await repository.syncTrades();
-    if (syncResult != null && syncResult['lockoutStatus'] != null) {
-      final lockoutStatus = syncResult['lockoutStatus'] as Map<String, dynamic>;
-      final isLocked = lockoutStatus['locked'] as bool? ?? false;
-      if (isLocked) {
-        final lockedUntilStr = lockoutStatus['lockedUntil'] as String?;
-        final appsToBlockRaw = lockoutStatus['appsToBlock'];
-        List<String> appsToBlock = [];
-        if (appsToBlockRaw is List) {
-          appsToBlock = appsToBlockRaw.map((e) => e.toString()).toList();
-        }
-        
-        await BinanceBlockerService().saveSettings(
-          appsToBlock: appsToBlock,
-          lockedUntil: lockedUntilStr,
-        );
-        await BinanceBlockerService().enableBlock();
-      } else {
-        await BinanceBlockerService().disableBlock();
-      }
-    }
-  } catch (e) {
-    print("Sync trades error: $e");
-    // Fail silently if Schwab is not connected or returns 404
-  }
-}
-
-final fetchTradeLimitProvider = FutureProvider<void>((ref) async {
-  final repository = ref.watch(settingRepositoryProvider);
-  try {
-    final data = await repository.getTradeLimit();
-    print("trade limi data : $data");
-    if (data is Map<String, dynamic> && data['tradeLimit'] is Map<String, dynamic>) {
-      final tradeLimit = data['tradeLimit'] as Map<String, dynamic>;
-      final dailyLimit = tradeLimit['dailyLimit'] as int? ?? 2;
-      final lockoutHours = tradeLimit['lockoutHours'] as int? ?? 4;
-      final isEnabled = tradeLimit['isEnabled'] as bool? ?? false;
-      final remaining = data['remainingTrades'] as int? ?? dailyLimit;
-      
-      ref.read(tradeLimitCountProvider.notifier).state = dailyLimit;
-      ref.read(lockDurationProvider.notifier).state = lockoutHours;
-      // Block daily setup only if the trade limit rule is enabled AND either the limit date or the set lock date matches today's date
-      final dateStr = tradeLimit['date'] as String?;
-      final lockDateStr = tradeLimit['lockDate'] as String?;
-      final todayStr = DateTime.now().toLocal().toString().split(' ')[0]; // yyyy-MM-dd
-      
-      final isToday = (dateStr != null && dateStr.startsWith(todayStr)) ||
-                      (lockDateStr != null && lockDateStr.startsWith(todayStr));
-      
-      final shouldLockSetup = isEnabled && isToday;
-      ref.read(isTradeLimitLockedProvider.notifier).state = shouldLockSetup;
-      ref.read(remainingTradesProvider.notifier).state = remaining;
-
-      if (isEnabled) {
-        _triggerTradeSync(repository);
-      }
-    }
-  } catch (e) {
-    // Fail silently or handle accordingly
-  }
-});

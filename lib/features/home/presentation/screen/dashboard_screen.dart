@@ -10,6 +10,7 @@ import 'package:raminups/features/home/presentation/widgets/manualDatePickerLock
 import '../../../../core/Binace/binance_blocker.dart';
 import '../../../../core/Binace/binance_blocker_service.dart';
 import '../providers/dashboard_providers.dart';
+import '../providers/trade_limit_state.dart';
 import '../providers/connection_providers.dart';
 import '../widgets/iconsButton.dart';
 import '../widgets/tradeJournalSection.dart';
@@ -26,7 +27,6 @@ class DashboardScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // Fetch the broker list when the dashboard is loaded
     ref.watch(brokerConnectionsProvider);
-    ref.watch(fetchTradeLimitProvider);
 
     final isApiConnected = ref.watch(apiStatusProvider);
     final isTimeLocked = ref.watch(timeLockProvider);
@@ -283,9 +283,12 @@ class DashboardScreen extends ConsumerWidget {
                 Expanded(
                   child: Consumer(
                     builder: (context, ref, child) {
-                      final fetchLimitAsync = ref.watch(fetchTradeLimitProvider);
-                      return fetchLimitAsync.when(
-                        data: (_) {
+                      final limitState = ref.watch(tradeLimitStateProvider);
+                      if (!limitState.loaded) {
+                        return const _DailyTradeLimitConfigShimmer();
+                      }
+                      return Builder(
+                        builder: (context) {
                           return Container(
                             constraints: const BoxConstraints(minHeight: 200), // Keeps cards uniformly sized
                             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
@@ -412,7 +415,7 @@ class DashboardScreen extends ConsumerWidget {
                                                   dailyLimit: dailyLimit,
                                                   lockoutHours: lockoutHours,
                                                 );
-                                                ref.invalidate(fetchTradeLimitProvider);
+                                                ref.read(tradeMonitorProvider).refreshNow('limit-change');
 
                                                 ScaffoldMessenger.of(context).showSnackBar(
                                                   const SnackBar(content: Text('Daily Lock Limit saved successfully!')),
@@ -437,8 +440,6 @@ class DashboardScreen extends ConsumerWidget {
                             ),
                           );
                         },
-                        loading: () => const _DailyTradeLimitConfigShimmer(),
-                        error: (err, stack) => const _DailyTradeLimitConfigShimmer(),
                       );
                     },
                   ),

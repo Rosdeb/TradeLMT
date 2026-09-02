@@ -13,21 +13,13 @@ final tradingPlatformsProvider = Provider<List<TradingPlatform>>((ref) {
       islock: false,
       logo: Assets.Thinkorswim,
     ),
-    TradingPlatform(
-      name: 'Tradovate',
-      islock: true,
-      logo: Assets.Tradeovate,
-    ),
+    TradingPlatform(name: 'Tradovate', islock: true, logo: Assets.Tradeovate),
     TradingPlatform(
       name: 'TradingView',
       islock: false,
       logo: Assets.TradingView,
     ),
-    TradingPlatform(
-      islock: true,
-      name: 'Robinhood',
-      logo: Assets.Robinhood,
-    ),
+    TradingPlatform(islock: true, name: 'Robinhood', logo: Assets.Robinhood),
     TradingPlatform(
       name: 'NinjaTrader',
       islock: false,
@@ -42,8 +34,8 @@ final tradingPlatformsProvider = Provider<List<TradingPlatform>>((ref) {
 });
 
 final selectedPlatformsProvider = StateProvider<List<String>>((ref) => []);
-final tradeLimitCountProvider = StateProvider<int>((ref)=>2);
-final weeklytradeLimitCountProvider = StateProvider<int>((ref)=>2);
+final tradeLimitCountProvider = StateProvider<int>((ref) => 2);
+final weeklytradeLimitCountProvider = StateProvider<int>((ref) => 2);
 final lockDurationProvider = StateProvider<int>((ref) => 4);
 final weeklylockDurationProvider = StateProvider<int>((ref) => 4);
 
@@ -61,6 +53,16 @@ final userProfileProvider = FutureProvider<UserModel>((ref) async {
   final response = await apiService.get('/auth/me');
   final userResponse = UserResponse.fromJson(response.data);
   return userResponse.user;
+});
+
+final todayTradesProvider = FutureProvider<int>((ref) async {
+  final repository = ref.watch(settingRepositoryProvider);
+  final data = await repository.getTodayTrades();
+  if (data != null && data['trades'] != null) {
+    final trades = data['trades'] as List;
+    return trades.length;
+  }
+  return 0;
 });
 
 /// Legacy providers — still read by the dashboard widgets. They are now written

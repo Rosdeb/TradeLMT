@@ -8,14 +8,14 @@ class SettingRepository {
 
   SettingRepository(this._apiService);
 
-  Future<void> changePassword(String newPassword, String confirmPassword) async {
+  Future<void> changePassword(
+    String newPassword,
+    String confirmPassword,
+  ) async {
     try {
       await _apiService.patch(
         '/auth/change-password',
-        data: {
-          "newPassword": newPassword,
-          "confirmPassword": confirmPassword,
-        },
+        data: {"newPassword": newPassword, "confirmPassword": confirmPassword},
         requiresAuth: true,
       );
     } catch (e) {
@@ -23,7 +23,10 @@ class SettingRepository {
     }
   }
 
-  Future<void> updateProfile({required String name, String? avatarFilePath}) async {
+  Future<void> updateProfile({
+    required String name,
+    String? avatarFilePath,
+  }) async {
     try {
       final data = FormData.fromMap({
         "name": name,
@@ -31,11 +34,7 @@ class SettingRepository {
           "avatar": await MultipartFile.fromFile(avatarFilePath),
       });
 
-      await _apiService.patch(
-        '/auth/me',
-        data: data,
-        requiresAuth: true,
-      );
+      await _apiService.patch('/auth/me', data: data, requiresAuth: true);
     } catch (e) {
       rethrow;
     }
@@ -43,7 +42,11 @@ class SettingRepository {
 
   Future<Map<String, dynamic>?> getTradeLimit() async {
     try {
-      final response = await _apiService.get('/trade-limit', requiresAuth: true);
+      final response = await _apiService.get(
+        '/trade-limit',
+        requiresAuth: true,
+      );
+      print("response : $response");
       return response.data as Map<String, dynamic>?;
     } catch (e) {
       rethrow;
@@ -55,7 +58,10 @@ class SettingRepository {
   /// `{ locked: true, lockedUntil, reason, appsToBlock: [...] }`.
   Future<Map<String, dynamic>?> getLockoutStatus() async {
     try {
-      final response = await _apiService.get('/lockout/status', requiresAuth: true);
+      final response = await _apiService.get(
+        '/lockout/status',
+        requiresAuth: true,
+      );
       return response.data as Map<String, dynamic>?;
     } catch (e) {
       rethrow;
@@ -64,7 +70,22 @@ class SettingRepository {
 
   Future<Map<String, dynamic>?> syncTrades() async {
     try {
-      final response = await _apiService.post('/trades/sync', requiresAuth: true);
+      final response = await _apiService.post(
+        '/trades/sync',
+        requiresAuth: true,
+      );
+      return response.data as Map<String, dynamic>?;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<Map<String, dynamic>?> getTodayTrades() async {
+    try {
+      final response = await _apiService.get(
+        '/trades/today',
+        requiresAuth: true,
+      );
       return response.data as Map<String, dynamic>?;
     } catch (e) {
       rethrow;

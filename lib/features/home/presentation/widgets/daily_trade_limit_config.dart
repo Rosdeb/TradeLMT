@@ -17,8 +17,8 @@ class DailyTradeLimitConfigWidget extends ConsumerWidget {
     }
 
     return Container(
-      constraints: const BoxConstraints(minHeight: 200),
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+      constraints: const BoxConstraints(minHeight: 160),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
         color: AppColors.white_bg,
         borderRadius: BorderRadius.circular(16),
@@ -38,34 +38,35 @@ class DailyTradeLimitConfigWidget extends ConsumerWidget {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
                   color: AppColors.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Icon(Icons.security, color: AppColors.primary, size: 20),
+                child: Icon(Icons.security, color: AppColors.primary, size: 16),
               ),
               const SizedBox(width: 12),
               AppText(
                 "Daily Trade Limit",
-                fontSize: 18,
+                fontSize: 15,
                 color: AppColors.textDark,
                 fontWeight: FontWeight.bold,
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           AppText(
             "Configure your daily trade limit to prevent overtrading. The terminal will enter Restricted Mode upon reaching this limit.",
             fontWeight: FontWeight.w400,
             fontSize: 11,
             color: Colors.grey.shade600,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
 
           // Counter and Selector Grid
           Row(
@@ -77,8 +78,8 @@ class DailyTradeLimitConfigWidget extends ConsumerWidget {
                   AppText(
                     "Max Trades",
                     fontSize: 12,
-                    color: Colors.grey.shade600,
-                    fontWeight: FontWeight.w600,
+                    color: Colors.black,
+                    fontWeight: FontWeight.w400,
                   ),
                   const SizedBox(height: 6),
                   const TradeLimitCounter(),
@@ -92,12 +93,12 @@ class DailyTradeLimitConfigWidget extends ConsumerWidget {
                     AppText(
                       "Lockout Duration",
                       fontSize: 12,
-                      color: Colors.grey.shade600,
-                      fontWeight: FontWeight.w600,
+                      color: Colors.black,
+                      fontWeight: FontWeight.w400,
                     ),
                     const SizedBox(height: 6),
                     SizedBox(
-                      height: 40,
+                      height: 34,
                       width: double.infinity,
                       child: Consumer(
                         builder: (context, ref, child) {
@@ -127,7 +128,7 @@ class DailyTradeLimitConfigWidget extends ConsumerWidget {
                                       },
                                 borderRadius: BorderRadius.circular(8),
                                 child: Container(
-                                  width: 44,
+                                  width: 36,
                                   decoration: BoxDecoration(
                                     color: isSelected
                                         ? const Color(
@@ -147,11 +148,11 @@ class DailyTradeLimitConfigWidget extends ConsumerWidget {
                                       "$duration H",
                                       color: isSelected
                                           ? const Color(0xFF2ECC71)
-                                          : const Color(0xFF64748B),
+                                          : const Color(0xFF000000),
                                       fontWeight: isSelected
                                           ? FontWeight.bold
                                           : FontWeight.w600,
-                                      fontSize: 13,
+                                      fontSize: 11,
                                     ),
                                   ),
                                 ),
@@ -166,7 +167,7 @@ class DailyTradeLimitConfigWidget extends ConsumerWidget {
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           Consumer(
             builder: (context, ref, child) {
               final isLockedInner = ref.watch(isTradeLimitLockedProvider);
@@ -247,7 +248,7 @@ class TradeLimitCounter extends ConsumerWidget {
     final isLocked = ref.watch(isTradeLimitLockedProvider);
 
     return Container(
-      height: 40,
+      height: 34,
       padding: const EdgeInsets.symmetric(horizontal: 4),
       decoration: BoxDecoration(
         color: const Color(0xFFF8FAFC),
@@ -268,7 +269,7 @@ class TradeLimitCounter extends ConsumerWidget {
                   },
           ),
           Container(
-            width: 40,
+            width: 34,
             alignment: Alignment.center,
             child: AppText(
               tradeLimit.toString(),
@@ -326,8 +327,8 @@ class _DailyTradeLimitConfigShimmerState
       builder: (context, child) {
         final double opacity = 0.3 + (_controller.value * 0.4);
         return Container(
-          constraints: const BoxConstraints(minHeight: 200),
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+          constraints: const BoxConstraints(minHeight: 160),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           decoration: BoxDecoration(
             color: AppColors.white_bg,
             borderRadius: BorderRadius.circular(16),
@@ -362,10 +363,10 @@ class _DailyTradeLimitConfigShimmerState
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
                 Container(
                   width: double.infinity,
-                  height: 12,
+                  height: 8,
                   decoration: BoxDecoration(
                     color: Colors.grey[300],
                     borderRadius: BorderRadius.circular(4),
@@ -374,13 +375,13 @@ class _DailyTradeLimitConfigShimmerState
                 const SizedBox(height: 8),
                 Container(
                   width: double.infinity,
-                  height: 12,
+                  height: 8,
                   decoration: BoxDecoration(
                     color: Colors.grey[300],
                     borderRadius: BorderRadius.circular(4),
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 12),
                 Row(
                   children: [
                     Column(
@@ -388,13 +389,13 @@ class _DailyTradeLimitConfigShimmerState
                       children: [
                         Container(
                           width: 60,
-                          height: 12,
+                          height: 8,
                           color: Colors.grey[300],
                         ),
                         const SizedBox(height: 8),
                         Container(
                           width: 100,
-                          height: 40,
+                          height: 34,
                           decoration: BoxDecoration(
                             color: Colors.grey[300],
                             borderRadius: BorderRadius.circular(8),
@@ -409,12 +410,12 @@ class _DailyTradeLimitConfigShimmerState
                         children: [
                           Container(
                             width: 100,
-                            height: 12,
+                            height: 8,
                             color: Colors.grey[300],
                           ),
                           const SizedBox(height: 8),
                           Container(
-                            height: 40,
+                            height: 34,
                             decoration: BoxDecoration(
                               color: Colors.grey[300],
                               borderRadius: BorderRadius.circular(8),
@@ -425,7 +426,7 @@ class _DailyTradeLimitConfigShimmerState
                     ),
                   ],
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 12),
                 Container(
                   width: double.infinity,
                   height: 50,

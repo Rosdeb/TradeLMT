@@ -107,16 +107,18 @@ class DashboardScreen extends ConsumerWidget {
             TradingPlatformsWidget(),
             const SizedBox(height: 16),
 
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // 1. LEFT PANEL: Daily Trade Limit Configuration
-                const Expanded(child: DailyTradeLimitConfigWidget()),
-                const SizedBox(width: 16),
+            IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // 1. LEFT PANEL: Daily Trade Limit Configuration
+                  const Expanded(child: DailyTradeLimitConfigWidget()),
+                  const SizedBox(width: 16),
 
-                // 2. RIGHT PANEL: Manual Lockout & Profit Protection Control
-                ManualProtectionLockPanel(),
-              ],
+                  // 2. RIGHT PANEL: Manual Lockout & Profit Protection Control
+                  ManualProtectionLockPanel(),
+                ],
+              ),
             ),
 
             const SizedBox(height: 16),

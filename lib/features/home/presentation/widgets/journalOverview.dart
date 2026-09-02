@@ -9,7 +9,7 @@ class JournalOverviewWidget extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10),
       decoration: BoxDecoration(
-        color: const Color(0xFFF7C2C2),
+        color: Colors.transparent,
         borderRadius: BorderRadius.circular(12.0),
         border: Border.all(
           color: const Color(0xFF262C36),
